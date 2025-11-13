@@ -132,23 +132,23 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ plan, onClose, onSuc
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-md flex items-center justify-center z-50 p-4 animate-fade-in">
-      <div className="w-full max-w-md bg-gradient-to-br from-celestial-blue to-midnight-purple rounded-2xl p-8 shadow-glow-white border border-starlight-silver/20 relative">
-        <button onClick={onClose} className="absolute top-4 right-4 text-starlight-silver/70 hover:text-white transition-colors">
+      <div className="w-full max-w-md bg-gradient-to-br from-sky-blue to-dawn-pink dark:from-celestial-blue dark:to-midnight-purple rounded-2xl p-8 shadow-lg shadow-gray-400/30 dark:shadow-glow-white border border-cloud-gray/30 dark:border-starlight-silver/20 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-deep-sapphire/70 dark:text-starlight-silver/70 hover:text-deep-sapphire dark:hover:text-white transition-colors">
           <XIcon className="w-6 h-6" />
         </button>
 
         <div className="text-center">
-            <h2 className="text-2xl font-serif font-bold text-white">Unlock {plan.name}</h2>
-            <p className="text-moonbeam-gold text-4xl font-bold my-4">{plan.price}</p>
-            <p className="text-starlight-silver/80">You are about to begin a deeper journey. Please confirm your secure payment.</p>
+            <h2 className="text-2xl font-serif font-bold text-deep-sapphire dark:text-white">Unlock {plan.name}</h2>
+            <p className="text-sunbeam-gold dark:text-moonbeam-gold text-4xl font-bold my-4">{plan.price}</p>
+            <p className="text-deep-sapphire/80 dark:text-starlight-silver/80">You are about to begin a deeper journey. Please confirm your secure payment.</p>
         </div>
 
         <form onSubmit={handleSubmit} className="mt-8 space-y-4">
             <div>
-                <label htmlFor="cardNumber" className="block text-sm font-medium text-starlight-silver/90 mb-2">Card Number</label>
+                <label htmlFor="cardNumber" className="block text-sm font-medium text-deep-sapphire/90 dark:text-starlight-silver/90 mb-2">Card Number</label>
                 <div className="relative">
                     <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                        <CreditCardIcon className="h-5 w-5 text-starlight-silver/50" />
+                        <CreditCardIcon className="h-5 w-5 text-deep-sapphire/50 dark:text-starlight-silver/50" />
                     </div>
                     <input 
                         type="tel" 
@@ -157,16 +157,16 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ plan, onClose, onSuc
                         value={cardNumber}
                         onChange={handleInputChange(setCardNumber, 'cardNumber', formatCardNumber)}
                         maxLength={19}
-                        className={`w-full bg-celestial-blue/50 border rounded-lg pl-10 pr-4 py-2 text-white placeholder-starlight-silver/50 focus:ring-2 focus:outline-none transition-shadow ${errors.cardNumber ? 'border-red-500/70 focus:ring-red-500/50' : 'border-starlight-silver/20 focus:ring-moonbeam-gold focus:border-moonbeam-gold'}`}
+                        className={`w-full bg-white/50 dark:bg-celestial-blue/50 border rounded-lg pl-10 pr-4 py-2 text-deep-sapphire dark:text-white placeholder-deep-sapphire/50 dark:placeholder-starlight-silver/50 focus:ring-2 focus:outline-none transition-shadow ${errors.cardNumber ? 'border-red-500/70 focus:ring-red-500/50' : 'border-cloud-gray/40 dark:border-starlight-silver/20 focus:ring-sunbeam-gold dark:focus:ring-moonbeam-gold focus:border-sunbeam-gold dark:focus:border-moonbeam-gold'}`}
                         aria-invalid={!!errors.cardNumber}
                         aria-describedby={errors.cardNumber ? "card-error" : undefined}
                     />
                 </div>
-                {errors.cardNumber && <p id="card-error" className="mt-1 text-xs text-red-400">{errors.cardNumber}</p>}
+                {errors.cardNumber && <p id="card-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.cardNumber}</p>}
             </div>
             <div className="grid grid-cols-2 gap-4">
                 <div>
-                    <label htmlFor="expiry" className="block text-sm font-medium text-starlight-silver/90 mb-2">Expiry</label>
+                    <label htmlFor="expiry" className="block text-sm font-medium text-deep-sapphire/90 dark:text-starlight-silver/90 mb-2">Expiry</label>
                     <input 
                         type="tel" 
                         id="expiry" 
@@ -174,14 +174,14 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ plan, onClose, onSuc
                         value={expiry}
                         onChange={handleInputChange(setExpiry, 'expiry', formatExpiryDate)}
                         maxLength={7}
-                        className={`w-full bg-celestial-blue/50 border rounded-lg px-4 py-2 text-white placeholder-starlight-silver/50 focus:ring-2 focus:outline-none transition-shadow ${errors.expiry ? 'border-red-500/70 focus:ring-red-500/50' : 'border-starlight-silver/20 focus:ring-moonbeam-gold focus:border-moonbeam-gold'}`}
+                        className={`w-full bg-white/50 dark:bg-celestial-blue/50 border rounded-lg px-4 py-2 text-deep-sapphire dark:text-white placeholder-deep-sapphire/50 dark:placeholder-starlight-silver/50 focus:ring-2 focus:outline-none transition-shadow ${errors.expiry ? 'border-red-500/70 focus:ring-red-500/50' : 'border-cloud-gray/40 dark:border-starlight-silver/20 focus:ring-sunbeam-gold dark:focus:ring-moonbeam-gold focus:border-sunbeam-gold dark:focus:border-moonbeam-gold'}`}
                         aria-invalid={!!errors.expiry}
                         aria-describedby={errors.expiry ? "expiry-error" : undefined}
                     />
-                    {errors.expiry && <p id="expiry-error" className="mt-1 text-xs text-red-400">{errors.expiry}</p>}
+                    {errors.expiry && <p id="expiry-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.expiry}</p>}
                 </div>
                 <div>
-                    <label htmlFor="cvc" className="block text-sm font-medium text-starlight-silver/90 mb-2">CVC</label>
+                    <label htmlFor="cvc" className="block text-sm font-medium text-deep-sapphire/90 dark:text-starlight-silver/90 mb-2">CVC</label>
                     <input 
                         type="tel" 
                         id="cvc" 
@@ -189,11 +189,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ plan, onClose, onSuc
                         value={cvc}
                         onChange={handleInputChange(setCvc, 'cvc', (v) => v.replace(/[^0-9]/gi, ''))}
                         maxLength={4}
-                        className={`w-full bg-celestial-blue/50 border rounded-lg px-4 py-2 text-white placeholder-starlight-silver/50 focus:ring-2 focus:outline-none transition-shadow ${errors.cvc ? 'border-red-500/70 focus:ring-red-500/50' : 'border-starlight-silver/20 focus:ring-moonbeam-gold focus:border-moonbeam-gold'}`}
+                        className={`w-full bg-white/50 dark:bg-celestial-blue/50 border rounded-lg px-4 py-2 text-deep-sapphire dark:text-white placeholder-deep-sapphire/50 dark:placeholder-starlight-silver/50 focus:ring-2 focus:outline-none transition-shadow ${errors.cvc ? 'border-red-500/70 focus:ring-red-500/50' : 'border-cloud-gray/40 dark:border-starlight-silver/20 focus:ring-sunbeam-gold dark:focus:ring-moonbeam-gold focus:border-sunbeam-gold dark:focus:border-moonbeam-gold'}`}
                         aria-invalid={!!errors.cvc}
                         aria-describedby={errors.cvc ? "cvc-error" : undefined}
                     />
-                    {errors.cvc && <p id="cvc-error" className="mt-1 text-xs text-red-400">{errors.cvc}</p>}
+                    {errors.cvc && <p id="cvc-error" className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.cvc}</p>}
                 </div>
             </div>
 
@@ -201,11 +201,11 @@ export const PaymentModal: React.FC<PaymentModalProps> = ({ plan, onClose, onSuc
                  <button
                     type="submit"
                     disabled={isProcessing || !isFormComplete}
-                    className="w-full bg-moonbeam-gold text-celestial-blue font-bold py-3 px-4 rounded-lg hover:bg-amber-300 transition-colors duration-300 shadow-lg shadow-moonbeam-gold/20 disabled:bg-starlight-silver/20 disabled:text-starlight-silver/50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center"
+                    className="w-full bg-sunbeam-gold dark:bg-moonbeam-gold text-white dark:text-celestial-blue font-bold py-3 px-4 rounded-lg hover:bg-amber-600 dark:hover:bg-amber-300 transition-colors duration-300 shadow-lg shadow-sunbeam-gold/30 dark:shadow-moonbeam-gold/20 disabled:bg-cloud-gray/50 dark:disabled:bg-starlight-silver/20 disabled:text-gray-500 dark:disabled:text-starlight-silver/50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center"
                 >
                     {isProcessing ? (
                         <>
-                           <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-celestial-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                           <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white dark:text-celestial-blue" xmlns="http://www.w.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                            </svg>

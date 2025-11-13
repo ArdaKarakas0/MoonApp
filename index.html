@@ -12,6 +12,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <script>
       tailwind.config = {
+        darkMode: 'class',
         theme: {
           extend: {
             fontFamily: {
@@ -19,10 +20,17 @@
               'sans': ['Inter', 'sans-serif'],
             },
             colors: {
+              // Dark Theme
               'celestial-blue': '#1a2a6c',
               'midnight-purple': '#2e1a47',
               'starlight-silver': '#d1d5db',
               'moonbeam-gold': '#fde68a',
+              // Light Theme
+              'sky-blue': '#f0f9ff',
+              'dawn-pink': '#fff1f2',
+              'deep-sapphire': '#1e3a8a',
+              'sunbeam-gold': '#f59e0b',
+              'cloud-gray': '#d1d5db',
             },
             boxShadow: {
               'glow-white': '0 0 15px rgba(255, 255, 255, 0.2)',
@@ -43,7 +51,7 @@
 }
 </script>
 </head>
-  <body class="bg-gradient-to-br from-celestial-blue to-midnight-purple font-sans antialiased text-starlight-silver">
+  <body class="bg-gradient-to-br from-sky-blue to-dawn-pink dark:from-celestial-blue dark:to-midnight-purple font-sans antialiased text-deep-sapphire dark:text-starlight-silver transition-colors duration-500">
     <div id="root"></div>
     <script type="module" src="/index.tsx"></script>
   </body>

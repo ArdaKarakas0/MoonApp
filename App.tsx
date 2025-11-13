@@ -9,6 +9,7 @@ import { generateDailyReading } from './services/geminiService';
 import { Screen, DailyReading, MoonPhase, Plan, SubscriptionPlan, HistoricReading } from './types';
 import { secureGetItem, secureSetItem } from './utils/secureStore';
 import { Toast } from './components/Toast';
+import { ThemeToggle } from './components/ThemeToggle';
 
 const availablePlans: SubscriptionPlan[] = [
     {
@@ -49,6 +50,9 @@ const availablePlans: SubscriptionPlan[] = [
 
 const APP_HISTORY_KEY = 'moonpath_history';
 const APP_PLAN_KEY = 'moonpath_plan';
+const APP_THEME_KEY = 'moonpath_theme';
+
+type Theme = 'light' | 'dark';
 
 
 const App: React.FC = () => {
@@ -61,6 +65,17 @@ const App: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [readingHistory, setReadingHistory] = useState<HistoricReading[]>([]);
   const [isViewingFromHistory, setIsViewingFromHistory] = useState(false);
+  const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem(APP_THEME_KEY) as Theme) || 'dark');
+
+  useEffect(() => {
+    // Apply theme class to HTML element
+    if (theme === 'dark') {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem(APP_THEME_KEY, theme);
+  }, [theme]);
 
   useEffect(() => {
     // Load subscription plan from secure storage
@@ -77,6 +92,10 @@ const App: React.FC = () => {
         console.error("Failed to load reading history from localStorage", e);
     }
   }, []);
+  
+  const toggleTheme = () => {
+    setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
+  };
 
   const handleGetReading = useCallback(async (name: string, mood: string, moonPhase: MoonPhase) => {
     setIsLoading(true);
@@ -220,7 +239,8 @@ const App: React.FC = () => {
 
   return (
     <main className="relative w-full min-h-screen">
-      <div className="absolute inset-0 bg-black/20"></div>
+      <div className="absolute inset-0 bg-black/10 dark:bg-black/20"></div>
+      <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
       <div className="relative z-10">
         {renderScreen()}
         {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
