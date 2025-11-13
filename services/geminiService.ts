@@ -173,9 +173,12 @@ const weeklyReportSchema = {
     required: ['dateRange', 'moodAnalysis', 'thematicInsights', 'forwardGuidance']
 };
 
-export const generateReading = async (userName: string, userMood: string, moonPhase: MoonPhase, currentPlan: Plan): Promise<DailyReading | SpecialReading> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// FIX: Correctly initialize GoogleGenAI and access the API key as per the guidelines.
+// The API key should be accessed from `process.env.API_KEY` and the client initialized directly.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
+
+export const generateReading = async (userName: string, userMood: string, moonPhase: MoonPhase, currentPlan: Plan): Promise<DailyReading | SpecialReading> => {
   const isSpecialReading = currentPlan === Plan.PREMIUM && (moonPhase === MoonPhase.FULL_MOON || moonPhase === MoonPhase.NEW_MOON);
   const taskType = isSpecialReading ? 'special_reading' : 'daily_reading';
   const schema = isSpecialReading ? specialReadingSchema : dailyReadingSchema;
@@ -212,8 +215,6 @@ export const generateReading = async (userName: string, userMood: string, moonPh
 };
 
 export const generateWeeklyReport = async (userName: string, history: HistoricReading[]): Promise<WeeklyReport> => {
-  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
   const sanitizedHistory = history.map(h => ({
       date: h.date,
       mood: h.userInputs.mood,
