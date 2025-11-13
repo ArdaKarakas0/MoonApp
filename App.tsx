@@ -6,7 +6,8 @@ import { DailyReadingDisplay } from './components/DailyReading';
 import { SubscriptionPage } from './components/Subscription';
 import { History } from './components/History';
 import { generateDailyReading } from './services/geminiService';
-import { Screen, DailyReading, MoonPhase, Plan, SubscriptionPlan } from './types';
+import { Screen, DailyReading, MoonPhase, Plan, SubscriptionPlan, HistoricReading } from './types';
+import { secureGetItem, secureSetItem } from './utils/secureStore';
 import { Toast } from './components/Toast';
 
 const availablePlans: SubscriptionPlan[] = [
@@ -46,20 +47,29 @@ const availablePlans: SubscriptionPlan[] = [
     }
 ];
 
+const APP_HISTORY_KEY = 'moonpath_history';
+const APP_PLAN_KEY = 'moonpath_plan';
+
+
 const App: React.FC = () => {
   const [screen, setScreen] = useState<Screen>('onboarding');
   const [previousScreen, setPreviousScreen] = useState<Screen>('onboarding');
-  const [dailyReading, setDailyReading] = useState<DailyReading | null>(null);
+  const [currentReading, setCurrentReading] = useState<HistoricReading | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<Plan>(Plan.FREE);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [readingHistory, setReadingHistory] = useState<DailyReading[]>([]);
-  const [viewingReadingIndex, setViewingReadingIndex] = useState<number | null>(null);
+  const [readingHistory, setReadingHistory] = useState<HistoricReading[]>([]);
+  const [isViewingFromHistory, setIsViewingFromHistory] = useState(false);
 
   useEffect(() => {
+    // Load subscription plan from secure storage
+    const storedPlan = secureGetItem<Plan>(APP_PLAN_KEY, Plan.FREE);
+    setCurrentPlan(storedPlan);
+
+    // Load reading history from standard storage
     try {
-        const storedHistory = localStorage.getItem('moonpath_history');
+        const storedHistory = localStorage.getItem(APP_HISTORY_KEY);
         if (storedHistory) {
             setReadingHistory(JSON.parse(storedHistory));
         }
@@ -75,13 +85,21 @@ const App: React.FC = () => {
     
     try {
       const readingData = await generateDailyReading(name, mood, moonPhase, currentPlan);
-      const readingWithDate = { ...readingData, date: new Date().toISOString() };
-      setDailyReading(readingWithDate);
+      const newHistoricReading: HistoricReading = {
+          id: new Date().toISOString() + Math.random(), // Add random number for more uniqueness
+          date: new Date().toISOString(),
+          userInputs: { name, mood, moonPhase },
+          reading: readingData,
+          journalEntry: '',
+      };
+
+      setCurrentReading(newHistoricReading);
+      setIsViewingFromHistory(false);
 
       setReadingHistory(prevHistory => {
-          const newHistory = [readingWithDate, ...prevHistory];
+          const newHistory = [newHistoricReading, ...prevHistory];
           try {
-              localStorage.setItem('moonpath_history', JSON.stringify(newHistory));
+              localStorage.setItem(APP_HISTORY_KEY, JSON.stringify(newHistory));
           } catch (e) {
               console.error("Failed to save reading history to localStorage", e);
           }
@@ -100,9 +118,9 @@ const App: React.FC = () => {
   
   const handleReset = () => {
       setScreen('onboarding');
-      setDailyReading(null);
+      setCurrentReading(null);
       setError(null);
-      setViewingReadingIndex(null);
+      setIsViewingFromHistory(false);
   };
 
   const handleManageSubscription = () => {
@@ -113,6 +131,7 @@ const App: React.FC = () => {
   const handleSelectPlan = (plan: Plan) => {
       const oldPlan = currentPlan;
       setCurrentPlan(plan);
+      secureSetItem(APP_PLAN_KEY, plan); // Save to secure storage
       setScreen(previousScreen);
       if (plan !== oldPlan) {
           if (plan === Plan.FREE) {
@@ -128,23 +147,39 @@ const App: React.FC = () => {
   }
 
   const handleViewHistory = () => {
-    setViewingReadingIndex(null);
     setScreen('history');
   }
 
-  const handleSelectHistoricReading = (index: number) => {
-    setViewingReadingIndex(index);
+  const handleSelectHistoricReading = (reading: HistoricReading) => {
+    setCurrentReading(reading);
+    setIsViewingFromHistory(true);
     setScreen('reading');
   }
 
   const handleBackToHistory = () => {
-    setViewingReadingIndex(null);
+    setIsViewingFromHistory(true);
     setScreen('history');
   }
 
-  const renderScreen = () => {
-    const readingToDisplay = viewingReadingIndex !== null ? readingHistory[viewingReadingIndex] : dailyReading;
+  const handleUpdateJournal = (readingId: string, journalText: string) => {
+    setReadingHistory(prevHistory => {
+        const newHistory = prevHistory.map(reading => 
+            reading.id === readingId ? { ...reading, journalEntry: journalText } : reading
+        );
+        try {
+            localStorage.setItem(APP_HISTORY_KEY, JSON.stringify(newHistory));
+        } catch (e) {
+            console.error("Failed to save updated journal to localStorage", e);
+        }
+        // Also update the currently viewed reading if it's the one being edited
+        if (currentReading?.id === readingId) {
+            setCurrentReading(prev => prev ? { ...prev, journalEntry: journalText } : null);
+        }
+        return newHistory;
+    });
+  };
 
+  const renderScreen = () => {
     switch (screen) {
       case 'onboarding':
         return <Onboarding onStart={handleGetReading} error={error} onManageSubscription={handleManageSubscription} />;
@@ -156,15 +191,16 @@ const App: React.FC = () => {
             </>
         );
       case 'reading':
-        return readingToDisplay ? (
+        return currentReading ? (
             <DailyReadingDisplay 
-                reading={readingToDisplay} 
+                reading={currentReading} 
                 currentPlan={currentPlan}
                 onReset={handleReset} 
                 onManageSubscription={handleManageSubscription}
                 onViewHistory={handleViewHistory}
-                isViewingHistory={viewingReadingIndex !== null}
+                isViewingHistory={isViewingFromHistory}
                 onBackToHistory={handleBackToHistory}
+                onUpdateJournal={handleUpdateJournal}
             />
         ) : <Onboarding onStart={handleGetReading} error="Something went wrong, please try again." onManageSubscription={handleManageSubscription}/>;
       case 'subscription':

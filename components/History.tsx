@@ -1,12 +1,12 @@
 
 import React from 'react';
-import { DailyReading, Plan } from '../types';
+import { HistoricReading, Plan } from '../types';
 import { MoonIcon } from './icons/MoonIcon';
 
 interface HistoryProps {
-  history: DailyReading[];
+  history: HistoricReading[];
   currentPlan: Plan;
-  onSelectReading: (index: number) => void;
+  onSelectReading: (reading: HistoricReading) => void;
   onClose: () => void;
   onUpgrade: () => void;
 }
@@ -70,17 +70,17 @@ export const History: React.FC<HistoryProps> = ({ history, currentPlan, onSelect
                 <EmptyState onUpgrade={onUpgrade} isFree={isFreePlan} />
             ) : (
                 <div className="space-y-4 bg-midnight-purple/20 p-4 rounded-xl max-h-[60vh] overflow-y-auto">
-                    {visibleHistory.map((reading, index) => (
+                    {visibleHistory.map((reading) => (
                         <button
-                            key={reading.date}
-                            onClick={() => onSelectReading(history.findIndex(h => h.date === reading.date))}
+                            key={reading.id}
+                            onClick={() => onSelectReading(reading)}
                             className="w-full text-left p-4 bg-celestial-blue/40 rounded-lg border border-starlight-silver/10 hover:bg-starlight-silver/10 hover:border-starlight-silver/30 transition-all duration-200 flex justify-between items-center"
                         >
                             <div>
-                                <p className="font-serif text-lg text-white">{reading.moonPhaseHeading.title}</p>
+                                <p className="font-serif text-lg text-white">{reading.reading.moonPhaseHeading.title}</p>
                                 <p className="text-sm text-starlight-silver/70">{new Date(reading.date).toLocaleDateString()}</p>
                             </div>
-                            <p className="text-sm font-semibold text-moonbeam-gold">{reading.lunarAlignment}</p>
+                            <p className="text-sm font-semibold text-moonbeam-gold">{reading.reading.lunarAlignment}</p>
                         </button>
                     ))}
                 </div>

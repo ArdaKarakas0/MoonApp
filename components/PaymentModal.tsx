@@ -45,6 +45,13 @@ const formatExpiryDate = (value: string) => {
     return cleanValue;
 }
 
+// FIX: Define the props interface for the PaymentModal component.
+interface PaymentModalProps {
+  plan: SubscriptionPlan;
+  onClose: () => void;
+  onSuccess: () => void;
+}
+
 export const PaymentModal: React.FC<PaymentModalProps> = ({ plan, onClose, onSuccess }) => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [cardNumber, setCardNumber] = useState('');
