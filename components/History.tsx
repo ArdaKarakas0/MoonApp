@@ -9,6 +9,7 @@ interface HistoryProps {
   onSelectReading: (reading: HistoricReading) => void;
   onClose: () => void;
   onUpgrade: () => void;
+  onGenerateReport: () => void;
 }
 
 const EmptyState: React.FC<{ onUpgrade: () => void; isFree: boolean }> = ({ onUpgrade, isFree }) => (
@@ -34,7 +35,7 @@ const EmptyState: React.FC<{ onUpgrade: () => void; isFree: boolean }> = ({ onUp
     </div>
 );
 
-export const History: React.FC<HistoryProps> = ({ history, currentPlan, onSelectReading, onClose, onUpgrade }) => {
+export const History: React.FC<HistoryProps> = ({ history, currentPlan, onSelectReading, onClose, onUpgrade, onGenerateReport }) => {
 
   const getVisibleHistory = () => {
     switch(currentPlan) {
@@ -51,6 +52,7 @@ export const History: React.FC<HistoryProps> = ({ history, currentPlan, onSelect
 
   const visibleHistory = getVisibleHistory();
   const isFreePlan = currentPlan === Plan.FREE;
+  const canGenerateReport = currentPlan === Plan.PLUS || currentPlan === Plan.PREMIUM;
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 animate-fade-in">
@@ -64,6 +66,16 @@ export const History: React.FC<HistoryProps> = ({ history, currentPlan, onSelect
                         "Your complete lunar journey."
                     }
                 </p>
+                {canGenerateReport && (
+                    <div className="mt-6">
+                        <button
+                            onClick={onGenerateReport}
+                            className="bg-sunbeam-gold/90 dark:bg-moonbeam-gold/90 text-white dark:text-celestial-blue font-bold py-2 px-6 rounded-lg hover:bg-amber-500 dark:hover:bg-amber-300 transition-colors duration-300 shadow-lg shadow-sunbeam-gold/30 dark:shadow-moonbeam-gold/20"
+                        >
+                            View Weekly Report
+                        </button>
+                    </div>
+                )}
             </header>
 
             {visibleHistory.length === 0 ? (

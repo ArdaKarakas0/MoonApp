@@ -5,11 +5,12 @@ import { Loading } from './components/Loading';
 import { DailyReadingDisplay } from './components/DailyReading';
 import { SubscriptionPage } from './components/Subscription';
 import { History } from './components/History';
-import { generateDailyReading } from './services/geminiService';
-import { Screen, DailyReading, MoonPhase, Plan, SubscriptionPlan, HistoricReading } from './types';
+import { generateReading, generateWeeklyReport } from './services/geminiService';
+import { Screen, MoonPhase, Plan, SubscriptionPlan, HistoricReading, WeeklyReport } from './types';
 import { secureGetItem, secureSetItem } from './utils/secureStore';
 import { Toast } from './components/Toast';
 import { ThemeToggle } from './components/ThemeToggle';
+import { WeeklyReportDisplay } from './components/WeeklyReport';
 
 const availablePlans: SubscriptionPlan[] = [
     {
@@ -65,6 +66,7 @@ const App: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [readingHistory, setReadingHistory] = useState<HistoricReading[]>([]);
   const [isViewingFromHistory, setIsViewingFromHistory] = useState(false);
+  const [weeklyReport, setWeeklyReport] = useState<WeeklyReport | null>(null);
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem(APP_THEME_KEY) as Theme) || 'dark');
 
   useEffect(() => {
@@ -103,7 +105,7 @@ const App: React.FC = () => {
     setScreen('loading');
     
     try {
-      const readingData = await generateDailyReading(name, mood, moonPhase, currentPlan);
+      const readingData = await generateReading(name, mood, moonPhase, currentPlan);
       const newHistoricReading: HistoricReading = {
           id: new Date().toISOString() + Math.random(), // Add random number for more uniqueness
           date: new Date().toISOString(),
@@ -198,6 +200,43 @@ const App: React.FC = () => {
     });
   };
 
+  const handleGenerateWeeklyReport = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    setScreen('loading');
+    
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const recentHistory = readingHistory.filter(r => new Date(r.date) > sevenDaysAgo);
+
+    if (recentHistory.length < 3) {
+        setToastMessage("You need at least 3 readings in the last 7 days to generate a report.");
+        setIsLoading(false);
+        setScreen('history');
+        return;
+    }
+
+    const mostRecentName = readingHistory[0]?.userInputs?.name || '';
+
+    try {
+        const reportData = await generateWeeklyReport(mostRecentName, recentHistory);
+        setWeeklyReport(reportData);
+        setScreen('weekly_report');
+    } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
+        setScreen('history');
+        setToastMessage(`Could not generate report: ${errorMessage}`);
+    } finally {
+        setIsLoading(false);
+    }
+  }, [readingHistory]);
+
+  const handleBackToHistoryFromReport = () => {
+    setWeeklyReport(null);
+    setScreen('history');
+  }
+
   const renderScreen = () => {
     switch (screen) {
       case 'onboarding':
@@ -205,7 +244,9 @@ const App: React.FC = () => {
       case 'loading':
         return (
             <>
-                <Onboarding onStart={handleGetReading} onManageSubscription={handleManageSubscription}/>
+                {/* Render the underlying screen for context during loading */}
+                {previousScreen === 'onboarding' && <Onboarding onStart={handleGetReading} onManageSubscription={handleManageSubscription}/>}
+                {previousScreen === 'history' && <History history={readingHistory} currentPlan={currentPlan} onSelectReading={handleSelectHistoricReading} onClose={handleReset} onUpgrade={handleManageSubscription} onGenerateReport={handleGenerateWeeklyReport} />}
                 <Loading />
             </>
         );
@@ -231,7 +272,24 @@ const App: React.FC = () => {
                   onSelectReading={handleSelectHistoricReading}
                   onClose={handleReset}
                   onUpgrade={handleManageSubscription}
+                  onGenerateReport={handleGenerateWeeklyReport}
                 />;
+      case 'weekly_report':
+        return weeklyReport ? (
+          <WeeklyReportDisplay 
+            report={weeklyReport}
+            onClose={handleBackToHistoryFromReport}
+          />
+        ) : (
+          <History 
+            history={readingHistory} 
+            currentPlan={currentPlan} 
+            onSelectReading={handleSelectHistoricReading}
+            onClose={handleReset}
+            onUpgrade={handleManageSubscription}
+            onGenerateReport={handleGenerateWeeklyReport}
+          />
+        );
       default:
         return <Onboarding onStart={handleGetReading} onManageSubscription={handleManageSubscription} />;
     }

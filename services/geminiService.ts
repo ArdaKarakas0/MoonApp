@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { MoonPhase, DailyReading, Plan } from '../types';
+import { MoonPhase, DailyReading, Plan, HistoricReading, WeeklyReport, SpecialReading } from '../types';
 
 const geminiPrompt = `
 You are MoonPath, the content and logic engine for a mobile app that delivers daily lunar guidance and offers optional paid subscription plans.
@@ -17,11 +17,6 @@ Your style:
 - NOT cliché, NOT generic horoscope talk.
 - No zodiac signs, no planets except the moon, no medical/financial/legal advice.
 
-**Subscription Logic:**
-- If the user's 'current_plan' is 'Free', provide a standard Lunar Message (2-3 paragraphs).
-- If the user's 'current_plan' is 'MoonPath Plus', provide a slightly deeper Lunar Message (3 paragraphs) with a focus on practical application or a specific area of reflection.
-- If the user's 'current_plan' is 'MoonPath Premium', provide the deepest, most detailed Lunar Message (3-4 paragraphs), offering more nuance and profound reflection.
-
 Always:
 - Write in English.
 - Do NOT mention that you are an AI.
@@ -31,102 +26,164 @@ Always:
 1) DAILY_READING
 ====================================
 
-When task_type is 'daily_reading', generate a full MoonPath reading.
+When task_type is 'daily_reading', generate a standard MoonPath reading.
+
+**Subscription Logic:**
+- If the user's 'current_plan' is 'Free', provide a standard Lunar Message (2-3 paragraphs).
+- If the user's 'current_plan' is 'MoonPath Plus', provide a slightly deeper Lunar Message (3 paragraphs) with a focus on practical application or a specific area of reflection.
+- If the user's 'current_plan' is 'MoonPath Premium' (and it's NOT a Full/New Moon), provide the deepest, most detailed Lunar Message (3-4 paragraphs), offering more nuance and profound reflection.
+
+Use this structure for Daily Readings:
+1.  **readingType**: Must be "daily".
+2.  **Moon Phase Heading**: 1–2 sentences about the phase's influence.
+3.  **Lunar Alignment**: A unique archetype name based on user's name + mood (e.g., Silent Tide, Ember Wave).
+4.  **Lunar Message**: 2–4 paragraphs of symbolic guidance, adjusted for the user's plan.
+5.  **Lunar Warning**: 1–2 sentences of subtle caution.
+6.  **Opportunity Window**: A 2–3 hour time range (e.g., “13:00–16:00”).
+7.  **Lunar Symbol of the Day**: A symbolic motif with a 1-2 line meaning.
+8.  **Closing Line**: A final poetic sentence.
+
+====================================
+2) SPECIAL_READING (PREMIUM ONLY)
+====================================
+
+When task_type is 'special_reading', generate a special, more detailed reading. This is ONLY for Premium users during a Full Moon or New Moon.
+
+Your Task:
+- Create a much deeper, more reflective, and ceremonial reading.
+- For Full Moons, focus on themes of culmination, release, gratitude, and illumination.
+- For New Moons, focus on themes of intention, new beginnings, potential, and planting seeds.
+
+Use this structure for Special Readings:
+1.  **readingType**: Must be "special".
+2.  **Moon Phase Heading**: As above, but with more gravitas.
+3.  **Lunar Alignment**: As above.
+4.  **Special Theme**: A powerful theme for the reading. (e.g., "The Tide of Culmination" for Full Moon, "The Seed of Intention" for New Moon).
+5.  **Deep Dive Message**: 3-4 paragraphs of profound, detailed guidance related to the special theme. Go deeper than a normal Lunar Message.
+6.  **Ritual Suggestion**: A simple, mindful activity the user can do. (e.g., a short meditation, a journaling prompt, a moment of reflection).
+7.  **Oracle Insight**: A direct, potent piece of wisdom or a question for contemplation.
+8.  **Closing Line**: A particularly powerful and memorable closing sentence.
+
+====================================
+3) WEEKLY_REPORT
+====================================
+
+When task_type is 'weekly_report', generate a "Weekly Lunar Evolution" report.
 
 Inputs:
 - user_name (string, may be empty)
-- user_mood (short phrase)
-- moon_phase (New Moon, Waxing Crescent, First Quarter, Waxing Gibbous, Full Moon, Waning Gibbous, Last Quarter, Waning Crescent)
-- current_plan (string, 'Free', 'MoonPath Plus', or 'MoonPath Premium')
-- optional: local_time_window or other context
+- recent_history (JSON array of the user's readings from the last 7 days)
+
+Your Task:
+Analyze the provided history to identify patterns and themes. Generate a cohesive, poetic summary.
+- Do NOT simply list the inputs. Synthesize them.
+- Focus on the emotional journey and recurring messages.
+- Maintain the mystical, gentle, and modern MoonPath tone.
 
 Use this structure:
-
-1. Moon Phase Heading
-   - 1–2 sentences about how this phase influences emotional or energetic flow today.
-
-2. Lunar Alignment
-   - Create a short, unique archetype name based on the user’s name + mood.
-   - Examples (do not reuse too often): Silent Tide, Ember Wave, Hidden Eclipse, Moonborn Flame, Silver Drift, Eternal Wave, Whispered Glow, Shifting Lantern, Dawn Ember, Quiet Orbit.
-
-3. Lunar Message
-   - 2–3 paragraphs for Free users. 
-   - 3 paragraphs for Plus users.
-   - 3-4 paragraphs for Premium users.
-   - Deep, symbolic, emotionally insightful.
-   - Talk about inner state, subtle shifts, choices, relationships, intuition.
-   - Provide reflection and gentle guidance, not strict predictions.
-
-4. Lunar Warning
-   - 1–2 sentences.
-   - A subtle caution: what to be careful about, what type of reaction or impulse to avoid.
-
-5. Opportunity Window
-   - A 2–3 hour time range (e.g. “13:00–16:00”) representing a moment of clarity, emotional strength, or intuition.
-   - If no time provided, invent a reasonable window.
-
-6. Lunar Symbol of the Day
-   - A symbolic motif (e.g., “The Briar Seed”, “The Whispered Mirror”, “The First Ripple”, “The Crowned Lantern”, “The Veiled Bridge”).
-   - Explain its meaning in 1–2 lines.
-
-7. Closing Line
-   - One poetic sentence of lunar wisdom.
-   - Do NOT reuse the exact same closing line every time.
-
-Length: ~200–350 words for Free, ~250-400 for Plus, ~300-450 words for Premium.
+1.  Date Range
+2.  Mood Analysis ("The Echoes of Your Moods")
+3.  Thematic Insights ("Themes That Shimmered")
+4.  Forward Guidance ("Whispers for the Week Ahead")
 `;
 
 const dailyReadingSchema = {
   type: Type.OBJECT,
   properties: {
+    readingType: { type: Type.STRING, enum: ['daily'] },
     moonPhaseHeading: {
       type: Type.OBJECT,
       properties: {
-        title: { type: Type.STRING, description: "The current moon phase, e.g., 'Full Moon'" },
-        description: { type: Type.STRING, description: "1-2 sentences about this phase's influence." },
-      },
-      required: ['title', 'description'],
+        title: { type: Type.STRING }, description: { type: Type.STRING },
+      }, required: ['title', 'description'],
     },
-    lunarAlignment: { type: Type.STRING, description: "A unique archetype name for the user based on their mood, e.g., 'Silent Tide'." },
-    lunarMessage: {
-      type: Type.ARRAY,
-      items: { type: Type.STRING },
-      description: "2-4 paragraphs of deep, symbolic, and insightful guidance, adjusted for user's plan."
-    },
-    lunarWarning: { type: Type.STRING, description: "1-2 sentences of a subtle caution." },
-    opportunityWindow: { type: Type.STRING, description: "A 2-3 hour time range, e.g., '13:00-16:00'." },
+    lunarAlignment: { type: Type.STRING },
+    lunarMessage: { type: Type.ARRAY, items: { type: Type.STRING } },
+    lunarWarning: { type: Type.STRING },
+    opportunityWindow: { type: Type.STRING },
     lunarSymbol: {
       type: Type.OBJECT,
-      properties: {
-        name: { type: Type.STRING, description: "A symbolic motif, e.g., 'The Veiled Bridge'." },
-        meaning: { type: Type.STRING, description: "1-2 lines explaining the symbol's meaning." },
-      },
-      required: ['name', 'meaning'],
+      properties: { name: { type: Type.STRING }, meaning: { type: Type.STRING },
+      }, required: ['name', 'meaning'],
     },
-    closingLine: { type: Type.STRING, description: "A final poetic sentence of lunar wisdom." },
+    closingLine: { type: Type.STRING },
   },
-  required: [
-    'moonPhaseHeading',
-    'lunarAlignment',
-    'lunarMessage',
-    'lunarWarning',
-    'opportunityWindow',
-    'lunarSymbol',
-    'closingLine',
-  ],
+  required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'lunarMessage', 'lunarWarning', 'opportunityWindow', 'lunarSymbol', 'closingLine' ],
+};
+
+const specialReadingSchema = {
+    type: Type.OBJECT,
+    properties: {
+        readingType: { type: Type.STRING, enum: ['special'] },
+        moonPhaseHeading: {
+            type: Type.OBJECT,
+            properties: { title: { type: Type.STRING }, description: { type: Type.STRING } },
+            required: ['title', 'description'],
+        },
+        lunarAlignment: { type: Type.STRING },
+        specialTheme: { type: Type.STRING, description: "A powerful theme for the reading, e.g., 'The Tide of Culmination'." },
+        deepDiveMessage: { type: Type.ARRAY, items: { type: Type.STRING }, description: "3-4 paragraphs of profound guidance." },
+        ritualSuggestion: {
+            type: Type.OBJECT,
+            properties: { title: { type: Type.STRING }, description: { type: Type.STRING } },
+            required: ['title', 'description'],
+            description: "A simple, mindful ritual or meditation prompt."
+        },
+        oracleInsight: {
+            type: Type.OBJECT,
+            properties: { title: { type: Type.STRING }, description: { type: Type.STRING } },
+            required: ['title', 'description'],
+            description: "A direct, potent piece of wisdom or a question."
+        },
+        closingLine: { type: Type.STRING },
+    },
+    required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'specialTheme', 'deepDiveMessage', 'ritualSuggestion', 'oracleInsight', 'closingLine' ],
 };
 
 
-export const generateDailyReading = async (userName: string, userMood: string, moonPhase: MoonPhase, currentPlan: Plan): Promise<DailyReading> => {
-  if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable is not set.");
-  }
+const weeklyReportSchema = {
+    type: Type.OBJECT,
+    properties: {
+        dateRange: { type: Type.STRING, description: "The date range of the analysis, e.g., 'October 28 - November 3, 2023'" },
+        moodAnalysis: {
+            type: Type.OBJECT,
+            properties: {
+                title: { type: Type.STRING, description: "The title for the mood analysis section." },
+                description: { type: Type.STRING, description: "1-2 paragraphs analyzing the user's moods." }
+            },
+            required: ['title', 'description']
+        },
+        thematicInsights: {
+            type: Type.OBJECT,
+            properties: {
+                title: { type: Type.STRING, description: "The title for the thematic insights section." },
+                description: { type: Type.STRING, description: "1-2 paragraphs summarizing recurring themes." }
+            },
+            required: ['title', 'description']
+        },
+        forwardGuidance: {
+            type: Type.OBJECT,
+            properties: {
+                title: { type: Type.STRING, description: "The title for the forward guidance section." },
+                description: { type: Type.STRING, description: "1 paragraph of gentle guidance for the next week." }
+            },
+            required: ['title', 'description']
+        }
+    },
+    required: ['dateRange', 'moodAnalysis', 'thematicInsights', 'forwardGuidance']
+};
+
+export const generateReading = async (userName: string, userMood: string, moonPhase: MoonPhase, currentPlan: Plan): Promise<DailyReading | SpecialReading> => {
   const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  const isSpecialReading = currentPlan === Plan.PREMIUM && (moonPhase === MoonPhase.FULL_MOON || moonPhase === MoonPhase.NEW_MOON);
+  const taskType = isSpecialReading ? 'special_reading' : 'daily_reading';
+  const schema = isSpecialReading ? specialReadingSchema : dailyReadingSchema;
 
   const userPrompt = `
   ---
   INSTRUCTIONS FOR THIS SPECIFIC REQUEST:
-  task_type: 'daily_reading'
+  task_type: '${taskType}'
   user_name: "${userName || 'the seeker'}"
   user_mood: "${userMood}"
   moon_phase: "${moonPhase}"
@@ -139,17 +196,57 @@ export const generateDailyReading = async (userName: string, userMood: string, m
       contents: `${geminiPrompt}\n${userPrompt}`,
       config: {
         responseMimeType: "application/json",
-        responseSchema: dailyReadingSchema,
+        responseSchema: schema,
       },
     });
 
     const jsonText = response.text.trim();
     const parsedJson = JSON.parse(jsonText);
 
-    return parsedJson as DailyReading;
+    return parsedJson as DailyReading | SpecialReading;
 
   } catch (error) {
-    console.error("Error generating daily reading:", error);
+    console.error(`Error generating ${taskType}:`, error);
     throw new Error("The moon's message is veiled at the moment. Please try again later.");
+  }
+};
+
+export const generateWeeklyReport = async (userName: string, history: HistoricReading[]): Promise<WeeklyReport> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
+  const sanitizedHistory = history.map(h => ({
+      date: h.date,
+      mood: h.userInputs.mood,
+      lunarMessage: 'lunarMessage' in h.reading ? h.reading.lunarMessage : undefined,
+      deepDiveMessage: 'deepDiveMessage' in h.reading ? h.reading.deepDiveMessage : undefined,
+      lunarSymbol: 'lunarSymbol' in h.reading ? h.reading.lunarSymbol.name : undefined,
+  }));
+
+  const userPrompt = `
+  ---
+  INSTRUCTIONS FOR THIS SPECIFIC REQUEST:
+  task_type: 'weekly_report'
+  user_name: "${userName || 'the seeker'}"
+  recent_history: ${JSON.stringify(sanitizedHistory, null, 2)}
+  `;
+  
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: `${geminiPrompt}\n${userPrompt}`,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: weeklyReportSchema,
+      },
+    });
+
+    const jsonText = response.text.trim();
+    const parsedJson = JSON.parse(jsonText);
+
+    return parsedJson as WeeklyReport;
+
+  } catch (error) {
+    console.error("Error generating weekly report:", error);
+    throw new Error("The moon's currents are unclear right now. A weekly reflection is not yet available.");
   }
 };

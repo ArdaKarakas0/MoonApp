@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect } from 'react';
-import { HistoricReading, Plan } from '../types';
+import { HistoricReading, Plan, SpecialReading, DailyReading } from '../types';
 import { CogIcon } from './icons/CogIcon';
 import { HistoryIcon } from './icons/HistoryIcon';
+import { MoonIcon } from './icons/MoonIcon';
 
 interface DailyReadingProps {
   reading: HistoricReading;
@@ -68,6 +69,47 @@ const JournalCard: React.FC<{ reading: HistoricReading; onUpdateJournal: (id: st
 };
 
 
+const DailyReadingContent: React.FC<{ content: DailyReading }> = ({ content }) => (
+  <>
+    <Card title="Lunar Message">
+      {content.lunarMessage.map((p, i) => <p key={i}>{p}</p>)}
+    </Card>
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <Card title="Lunar Warning">
+        <p>{content.lunarWarning}</p>
+      </Card>
+      <Card title="Opportunity Window">
+        <p className="text-2xl font-bold text-deep-sapphire dark:text-white text-center">{content.opportunityWindow}</p>
+      </Card>
+    </div>
+    <Card title="Symbol of the Day" className="text-center">
+      <p className="text-xl font-serif font-semibold text-deep-sapphire dark:text-white">{content.lunarSymbol.name}</p>
+      <p className="italic text-deep-sapphire/80 dark:text-starlight-silver/80">{content.lunarSymbol.meaning}</p>
+    </Card>
+  </>
+);
+
+const SpecialReadingContent: React.FC<{ content: SpecialReading }> = ({ content }) => (
+    <>
+        <div className="text-center bg-white/40 dark:bg-celestial-blue/40 py-4 px-6 rounded-lg border border-cloud-gray/30 dark:border-starlight-silver/10">
+            <p className="text-sm text-deep-sapphire/70 dark:text-starlight-silver/70">A Special Reading Theme</p>
+            <h2 className="text-2xl font-serif font-semibold text-sunbeam-gold dark:text-moonbeam-gold tracking-wide">{content.specialTheme}</h2>
+        </div>
+        <Card title="Deep Dive Message">
+            {content.deepDiveMessage.map((p, i) => <p key={i}>{p}</p>)}
+        </Card>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card title={content.ritualSuggestion.title}>
+                <p>{content.ritualSuggestion.description}</p>
+            </Card>
+            <Card title={content.oracleInsight.title}>
+                <p className="text-lg font-semibold italic text-deep-sapphire dark:text-white text-center">"{content.oracleInsight.description}"</p>
+            </Card>
+        </div>
+    </>
+);
+
+
 export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, currentPlan, onReset, onManageSubscription, onViewHistory, isViewingHistory = false, onBackToHistory, onUpdateJournal }) => {
   const isPremiumFeatureEnabled = currentPlan === Plan.PLUS || currentPlan === Plan.PREMIUM;
   const { reading: readingContent } = reading;
@@ -88,23 +130,10 @@ export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, curr
             <h2 className="text-2xl font-serif font-semibold text-sunbeam-gold dark:text-moonbeam-gold tracking-wide">{readingContent.lunarAlignment}</h2>
         </div>
         
-        <Card title="Lunar Message">
-            {readingContent.lunarMessage.map((p, i) => <p key={i}>{p}</p>)}
-        </Card>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card title="Lunar Warning">
-                <p>{readingContent.lunarWarning}</p>
-            </Card>
-            <Card title="Opportunity Window">
-                <p className="text-2xl font-bold text-deep-sapphire dark:text-white text-center">{readingContent.opportunityWindow}</p>
-            </Card>
-        </div>
-
-        <Card title="Symbol of the Day" className="text-center">
-            <p className="text-xl font-serif font-semibold text-deep-sapphire dark:text-white">{readingContent.lunarSymbol.name}</p>
-            <p className="italic text-deep-sapphire/80 dark:text-starlight-silver/80">{readingContent.lunarSymbol.meaning}</p>
-        </Card>
+        {readingContent.readingType === 'special' 
+            ? <SpecialReadingContent content={readingContent} /> 
+            : <DailyReadingContent content={readingContent} />
+        }
         
         <JournalCard reading={reading} onUpdateJournal={onUpdateJournal} />
 
