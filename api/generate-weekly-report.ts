@@ -1,4 +1,52 @@
-import { HistoricReading, WeeklyReport } from '../types';
+// Types copied from `types.ts` to make this function self-contained
+enum MoonPhase {
+    NEW_MOON = "New Moon",
+    WAXING_CRESCENT = "Waxing Crescent",
+    FIRST_QUARTER = "First Quarter",
+    WAXING_GIBBOUS = "Waxing Gibbous",
+    FULL_MOON = "Full Moon",
+    WANING_GIBBOUS = "Waning Gibbous",
+    LAST_QUARTER = "Last Quarter",
+    WANING_CRESCENT = "Waning Crescent",
+}
+
+interface DailyReading {
+  readingType: 'daily';
+  moonPhaseHeading: { title: string; description: string; };
+  lunarAlignment: string;
+  lunarMessage: string[];
+  lunarWarning: string;
+  opportunityWindow: string;
+  lunarSymbol: { name: string; meaning: string; };
+  closingLine: string;
+}
+
+interface SpecialReading {
+  readingType: 'special';
+  moonPhaseHeading: { title: string; description: string; };
+  lunarAlignment: string;
+  specialTheme: string;
+  deepDiveMessage: string[];
+  ritualSuggestion: { title: string; description: string; };
+  oracleInsight: { title: string; description: string; };
+  closingLine: string;
+}
+
+interface HistoricReading {
+  id: string;
+  date: string;
+  userInputs: { name: string; mood: string; moonPhase: MoonPhase; };
+  reading: DailyReading | SpecialReading;
+  journalEntry: string;
+}
+
+interface WeeklyReport {
+  dateRange: string;
+  moodAnalysis: { title: string; description: string; };
+  thematicInsights: { title: string; description: string; };
+  forwardGuidance: { title: string; description: string; };
+}
+
 
 // We'll define simple interfaces for what we expect.
 interface VercelRequest {
@@ -84,7 +132,7 @@ Synthesize the provided data; do not simply list the inputs.
 - User's Recent History (JSON): ${JSON.stringify(sanitizedHistory, null, 2)}
     `;
 
-    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     try {
         const geminiResponse = await fetch(GEMINI_API_URL, {

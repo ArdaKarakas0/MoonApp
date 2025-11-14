@@ -1,4 +1,20 @@
-import { MoonPhase, Plan, DailyReading, SpecialReading } from '../types';
+// Enums copied from `types.ts` to make this function self-contained
+enum MoonPhase {
+    NEW_MOON = "New Moon",
+    WAXING_CRESCENT = "Waxing Crescent",
+    FIRST_QUARTER = "First Quarter",
+    WAXING_GIBBOUS = "Waxing Gibbous",
+    FULL_MOON = "Full Moon",
+    WANING_GIBBOUS = "Waning Gibbous",
+    LAST_QUARTER = "Last Quarter",
+    WANING_CRESCENT = "Waning Crescent",
+}
+
+enum Plan {
+    FREE = "Free",
+    PLUS = "MoonPath Plus",
+    PREMIUM = "MoonPath Premium",
+}
 
 // This is a Vercel serverless function. We'll define simple interfaces for what we expect.
 interface VercelRequest {
@@ -129,7 +145,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const schema = isSpecialReading ? specialReadingSchema : dailyReadingSchema;
     const prompt = createPrompt(userName, userMood, moonPhase, currentPlan, isSpecialReading);
     
-    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     try {
         const geminiResponse = await fetch(GEMINI_API_URL, {
@@ -164,16 +180,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const jsonText = geminiData.candidates?.[0]?.content?.parts[0]?.text;
         if (!jsonText) {
-             console.error('Could not extract JSON text from Gemini response:', JSON.stringify(geminiData));
-             return res.status(500).json({ error: "Received an invalid format from the moon's whisper." });
+            console.error('Could not extract JSON text from Gemini response:', JSON.stringify(geminiData));
+            return res.status(500).json({ error: "Received an invalid format from the moon's daily reading." });
         }
-        
+
         const parsedJson = JSON.parse(jsonText);
 
-        res.status(200).json(parsedJson as DailyReading | SpecialReading);
+        res.status(200).json(parsedJson);
 
     } catch (error) {
-        console.error(`Error in serverless function for reading generation:`, error);
+        console.error("Error generating daily reading in serverless function:", error);
         res.status(500).json({ error: "The moon's message is veiled at the moment. Please try again later." });
     }
 }
