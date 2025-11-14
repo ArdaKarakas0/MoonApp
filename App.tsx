@@ -75,6 +75,7 @@ const App: React.FC = () => {
   const [previousScreen, setPreviousScreen] = useState<Screen>('onboarding');
   const [currentReading, setCurrentReading] = useState<HistoricReading | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<Plan>(Plan.FREE);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -110,6 +111,9 @@ const App: React.FC = () => {
     } catch (e) {
         console.error("Failed to load reading history from localStorage", e);
     }
+    
+    // A small timeout prevents a jarring flicker if loading is very fast.
+    setTimeout(() => setIsInitializing(false), 2000);
   }, []);
   
   const toggleTheme = () => {
@@ -306,9 +310,9 @@ const App: React.FC = () => {
       <div className="absolute inset-0 bg-black/10 dark:bg-black/20"></div>
       <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
       <div className="relative z-10">
-        {renderScreen()}
+        {!isInitializing && renderScreen()}
       </div>
-      {isLoading && <Loading />}
+      {(isLoading || isInitializing) && <Loading />}
       {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
     </main>
   );

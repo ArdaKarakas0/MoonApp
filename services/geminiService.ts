@@ -66,3 +66,24 @@ export const generateWeeklyReport = async (userName: string, history: HistoricRe
     throw new Error("The moon's currents are unclear right now. A weekly reflection is not yet available.");
   }
 };
+
+export const generateProductDescription = async (productName: string): Promise<string> => {
+  try {
+    const response = await fetch('/api/generate-product-description', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ productName }),
+    });
+
+    if (!response.ok) {
+      throw new Error("Could not fetch the product's essence.");
+    }
+
+    const data = await response.json();
+    return data.description;
+  } catch (error) {
+    console.error("Error fetching product description:", error);
+    // Return a graceful fallback or re-throw
+    throw error;
+  }
+};

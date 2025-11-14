@@ -137,7 +137,11 @@ export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, curr
             : <DailyReadingContent content={readingContent} />
         }
         
-        {adProduct && <Advertisement product={adProduct} />}
+        {adProduct && (
+            <Card title="A Tool for Your Path">
+                <Advertisement product={adProduct} />
+            </Card>
+        )}
 
         <JournalCard reading={reading} onUpdateJournal={onUpdateJournal} />
 
