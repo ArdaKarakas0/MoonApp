@@ -21,32 +21,6 @@ const Type = {
     STRING: 'STRING',
 };
 
-const geminiPrompt = `
-You are MoonPath, the content and logic engine for a mobile app that delivers daily lunar guidance and offers optional paid subscription plans. Your style is calm, mystical, poetic, and modern.
-
-====================================
-WEEKLY_REPORT
-====================================
-
-When task_type is 'weekly_report', generate a "Weekly Lunar Evolution" report.
-
-Inputs:
-- user_name (string, may be empty)
-- recent_history (JSON array of the user's readings from the last 7 days)
-
-Your Task:
-Analyze the provided history to identify patterns and themes. Generate a cohesive, poetic summary.
-- Do NOT simply list the inputs. Synthesize them.
-- Focus on the emotional journey and recurring messages.
-- Maintain the mystical, gentle, and modern MoonPath tone.
-
-Use this structure:
-1.  Date Range
-2.  Mood Analysis ("The Echoes of Your Moods")
-3.  Thematic Insights ("Themes That Shimmered")
-4.  Forward Guidance ("Whispers for the Week Ahead")
-`;
-
 const weeklyReportSchema = {
     type: Type.OBJECT,
     properties: {
@@ -100,13 +74,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         lunarSymbol: 'lunarSymbol' in h.reading ? h.reading.lunarSymbol.name : undefined,
     }));
 
-    const combinedPrompt = `
-    ${geminiPrompt}
+    const prompt = `
+You are MoonPath, a mystical, poetic, and modern spiritual guide.
+Your task is to analyze a user's recent reading history to generate a "Weekly Lunar Evolution" report.
+The report should be a cohesive, poetic summary of their emotional journey and recurring themes.
+Synthesize the provided data; do not simply list the inputs.
 
-    INSTRUCTIONS FOR THIS SPECIFIC REQUEST:
-    task_type: 'weekly_report'
-    user_name: "${userName || 'the seeker'}"
-    recent_history: ${JSON.stringify(sanitizedHistory, null, 2)}
+- User Name: "${userName || 'the seeker'}"
+- User's Recent History (JSON): ${JSON.stringify(sanitizedHistory, null, 2)}
     `;
 
     const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
@@ -119,11 +94,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             },
             body: JSON.stringify({
                 contents: [{
-                    parts: [{ text: combinedPrompt }]
+                    parts: [{ text: prompt }]
                 }],
-                generation_config: {
-                    response_mime_type: "application/json",
-                    response_schema: weeklyReportSchema,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: weeklyReportSchema,
                 }
             })
         });

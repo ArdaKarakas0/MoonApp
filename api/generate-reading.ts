@@ -24,69 +24,6 @@ const Type = {
     ARRAY: 'ARRAY',
 };
 
-const geminiPrompt = `
-You are MoonPath, the content and logic engine for a mobile app that delivers daily lunar guidance and offers optional paid subscription plans.
-
-The app’s core concept:
-- The moon’s current phase influences emotional energy, intuition, and subtle life flow.
-- Each user has a “Lunar Alignment” that changes with their mood and the moon.
-- MoonPath gives poetic, mystical, gentle guidance. It is spiritual but modern and psychologically aware.
-
-Your style:
-- Calm, mystical, poetic, modern.
-- Gentle and wise, never harsh or judgmental.
-- Symbolic and metaphorical, but still understandable.
-- NOT cliché, NOT generic horoscope talk.
-- No zodiac signs, no planets except the moon, no medical/financial/legal advice.
-
-Always:
-- Write in English.
-- Do NOT mention that you are an AI.
-- Speak as the MoonPath experience itself.
-
-====================================
-1) DAILY_READING
-====================================
-
-When task_type is 'daily_reading', generate a standard MoonPath reading.
-
-**Subscription Logic:**
-- If the user's 'current_plan' is 'Free', provide a standard Lunar Message (2-3 paragraphs).
-- If the user's 'current_plan' is 'MoonPath Plus', provide a slightly deeper Lunar Message (3 paragraphs) with a focus on practical application or a specific area of reflection.
-- If the user's 'current_plan' is 'MoonPath Premium' (and it's NOT a Full/New Moon), provide the deepest, most detailed Lunar Message (3-4 paragraphs), offering more nuance and profound reflection.
-
-Use this structure for Daily Readings:
-1.  **readingType**: Must be "daily".
-2.  **Moon Phase Heading**: 1–2 sentences about the phase's influence.
-3.  **Lunar Alignment**: A unique archetype name based on user's name + mood (e.g., Silent Tide, Ember Wave).
-4.  **Lunar Message**: 2–4 paragraphs of symbolic guidance, adjusted for the user's plan.
-5.  **Lunar Warning**: 1–2 sentences of subtle caution.
-6.  **Opportunity Window**: A 2–3 hour time range (e.g., “13:00–16:00”).
-7.  **Lunar Symbol of the Day**: A symbolic motif with a 1-2 line meaning.
-8.  **Closing Line**: A final poetic sentence.
-
-====================================
-2) SPECIAL_READING (PREMIUM ONLY)
-====================================
-
-When task_type is 'special_reading', generate a special, more detailed reading. This is ONLY for Premium users during a Full Moon or New Moon.
-
-Your Task:
-- Create a much deeper, more reflective, and ceremonial reading.
-- For Full Moons, focus on themes of culmination, release, gratitude, and illumination.
-- For New Moons, focus on themes of intention, new beginnings, potential, and planting seeds.
-
-Use this structure for Special Readings:
-1.  **readingType**: Must be "special".
-2.  **Moon Phase Heading**: As above, but with more gravitas.
-3.  **Lunar Alignment**: As above.
-4.  **Special Theme**: A powerful theme for the reading. (e.g., "The Tide of Culmination" for Full Moon, "The Seed of Intention" for New Moon).
-5.  **Deep Dive Message**: 3-4 paragraphs of profound, detailed guidance related to the special theme. Go deeper than a normal Lunar Message.
-6.  **Ritual Suggestion**: A simple, mindful activity the user can do. (e.g., a short meditation, a journaling prompt, a moment of reflection).
-7.  **Oracle Insight**: A direct, potent piece of wisdom or a question for contemplation.
-8.  **Closing Line**: A particularly powerful and memorable closing sentence.
-`;
-
 const dailyReadingSchema = {
   type: Type.OBJECT,
   properties: {
@@ -140,6 +77,41 @@ const specialReadingSchema = {
     required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'specialTheme', 'deepDiveMessage', 'ritualSuggestion', 'oracleInsight', 'closingLine' ],
 };
 
+const createPrompt = (userName: string, userMood: string, moonPhase: MoonPhase, currentPlan: Plan, isSpecial: boolean): string => {
+    const baseInstruction = `
+You are MoonPath, a mystical, poetic, and modern spiritual guide. Generate a daily lunar guidance based on the user's state.
+Your tone is calm, gentle, and psychologically aware. Avoid clichés, horoscopes, and mentioning you are an AI.
+`;
+
+    if (isSpecial) {
+        const theme = moonPhase === MoonPhase.FULL_MOON ? 'culmination, release, and gratitude' : 'intention, new beginnings, and potential';
+        return `${baseInstruction}
+Generate a special, deep, and ceremonial reading for a premium user under a ${moonPhase}.
+Focus on themes of ${theme}.
+
+USER DETAILS:
+- Name: "${userName || 'the seeker'}"
+- Mood: "${userMood}"
+- Moon Phase: "${moonPhase}"
+- Plan: "${currentPlan}"
+`;
+    }
+
+    return `${baseInstruction}
+Adjust the depth of the Lunar Message based on the user's subscription plan:
+- Free: A standard, gentle message (2-3 paragraphs).
+- MoonPath Plus: A deeper message with practical reflection (3 paragraphs).
+- MoonPath Premium: The most profound and nuanced message (3-4 paragraphs).
+
+USER DETAILS:
+- Name: "${userName || 'the seeker'}"
+- Mood: "${userMood}"
+- Moon Phase: "${moonPhase}"
+- Plan: "${currentPlan}"
+`;
+};
+
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
         res.setHeader('Allow', 'POST');
@@ -154,19 +126,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const { userName, userMood, moonPhase, currentPlan } = req.body;
 
     const isSpecialReading = currentPlan === Plan.PREMIUM && (moonPhase === MoonPhase.FULL_MOON || moonPhase === MoonPhase.NEW_MOON);
-    const taskType = isSpecialReading ? 'special_reading' : 'daily_reading';
     const schema = isSpecialReading ? specialReadingSchema : dailyReadingSchema;
-
-    const combinedPrompt = `
-    ${geminiPrompt}
-
-    INSTRUCTIONS FOR THIS SPECIFIC REQUEST:
-    task_type: '${taskType}'
-    user_name: "${userName || 'the seeker'}"
-    user_mood: "${userMood}"
-    moon_phase: "${moonPhase}"
-    current_plan: "${currentPlan}"
-    `;
+    const prompt = createPrompt(userName, userMood, moonPhase, currentPlan, isSpecialReading);
     
     const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
@@ -178,11 +139,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             },
             body: JSON.stringify({
                 contents: [{
-                    parts: [{ text: combinedPrompt }]
+                    parts: [{ text: prompt }]
                 }],
-                generation_config: {
-                    response_mime_type: "application/json",
-                    response_schema: schema,
+                generationConfig: {
+                    responseMimeType: "application/json",
+                    responseSchema: schema,
                 }
             })
         });
@@ -206,7 +167,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.status(200).json(parsedJson as DailyReading | SpecialReading);
 
     } catch (error) {
-        console.error(`Error in serverless function for ${taskType}:`, error);
+        console.error(`Error in serverless function for reading generation:`, error);
         res.status(500).json({ error: "The moon's message is veiled at the moment. Please try again later." });
     }
 }
