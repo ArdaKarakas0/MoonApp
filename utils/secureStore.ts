@@ -1,3 +1,4 @@
+
 // In a real mobile app, you would use native secure storage (like Keychain on iOS or Keystore on Android).
 // This is a simplified simulation using XOR encryption for demonstration in a web environment.
 const key = 'moonpath-secret-key-for-demonstration';
