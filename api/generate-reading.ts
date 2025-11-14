@@ -182,8 +182,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                     parts: [{ text: fullPrompt }]
                 }],
                 generationConfig: {
-                    response_mime_type: "application/json",
-                    response_schema: schema,
+                    responseMimeType: "application/json",
+                    responseSchema: schema,
                 }
             })
         });
