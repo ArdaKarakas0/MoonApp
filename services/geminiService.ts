@@ -172,7 +172,17 @@ const weeklyReportSchema = {
     required: ['dateRange', 'moodAnalysis', 'thematicInsights', 'forwardGuidance']
 };
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Lazily initialize the AI client to handle missing API keys gracefully.
+let ai: GoogleGenAI | null = null;
+const getAiClient = (): GoogleGenAI => {
+    if (!process.env.API_KEY) {
+        throw new Error("Configuration Error: The API_KEY is missing. Please ensure it is set in the environment variables.");
+    }
+    if (!ai) {
+        ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    }
+    return ai;
+};
 
 export const generateReading = async (userName: string, userMood: string, moonPhase: MoonPhase, currentPlan: Plan): Promise<DailyReading | SpecialReading> => {
   const isSpecialReading = currentPlan === Plan.PREMIUM && (moonPhase === MoonPhase.FULL_MOON || moonPhase === MoonPhase.NEW_MOON);
@@ -190,7 +200,8 @@ export const generateReading = async (userName: string, userMood: string, moonPh
   `;
 
   try {
-    const response = await ai.models.generateContent({
+    const client = getAiClient();
+    const response = await client.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: `${geminiPrompt}\n${userPrompt}`,
       config: {
@@ -206,6 +217,9 @@ export const generateReading = async (userName: string, userMood: string, moonPh
 
   } catch (error) {
     console.error(`Error generating ${taskType}:`, error);
+    if (error instanceof Error && error.message.includes("API_KEY")) {
+        throw error;
+    }
     throw new Error("The moon's message is veiled at the moment. Please try again later.");
   }
 };
@@ -228,7 +242,8 @@ export const generateWeeklyReport = async (userName: string, history: HistoricRe
   `;
   
   try {
-    const response = await ai.models.generateContent({
+    const client = getAiClient();
+    const response = await client.models.generateContent({
       model: 'gemini-2.5-flash',
       contents: `${geminiPrompt}\n${userPrompt}`,
       config: {
@@ -244,6 +259,9 @@ export const generateWeeklyReport = async (userName: string, history: HistoricRe
 
   } catch (error) {
     console.error("Error generating weekly report:", error);
+    if (error instanceof Error && error.message.includes("API_KEY")) {
+        throw error;
+    }
     throw new Error("The moon's currents are unclear right now. A weekly reflection is not yet available.");
   }
 };

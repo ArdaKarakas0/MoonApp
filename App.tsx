@@ -54,6 +54,21 @@ const APP_THEME_KEY = 'moonpath_theme';
 
 type Theme = 'light' | 'dark';
 
+const getInitialTheme = (): Theme => {
+  try {
+    // Check if localStorage is available before using it
+    if (typeof window !== 'undefined' && window.localStorage) {
+      const storedTheme = localStorage.getItem(APP_THEME_KEY);
+      if (storedTheme === 'light' || storedTheme === 'dark') {
+        return storedTheme;
+      }
+    }
+  } catch (e) {
+    console.warn("Could not access localStorage to get theme. Defaulting to 'dark'.");
+  }
+  return 'dark'; // Default theme
+};
+
 
 const App: React.FC = () => {
   const [screen, setScreen] = useState<Screen>('onboarding');
@@ -66,7 +81,7 @@ const App: React.FC = () => {
   const [readingHistory, setReadingHistory] = useState<HistoricReading[]>([]);
   const [isViewingFromHistory, setIsViewingFromHistory] = useState(false);
   const [weeklyReport, setWeeklyReport] = useState<WeeklyReport | null>(null);
-  const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem(APP_THEME_KEY) as Theme) || 'dark');
+  const [theme, setTheme] = useState<Theme>(getInitialTheme);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -75,7 +90,9 @@ const App: React.FC = () => {
       document.documentElement.classList.remove('dark');
     }
     try {
-        localStorage.setItem(APP_THEME_KEY, theme);
+        if (typeof window !== 'undefined' && window.localStorage) {
+            localStorage.setItem(APP_THEME_KEY, theme);
+        }
     } catch (e) {
         console.error("Failed to save theme to localStorage", e);
     }
