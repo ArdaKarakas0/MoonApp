@@ -1,10 +1,6 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { MoonPhase, Plan, DailyReading, SpecialReading } from '../types';
 
-// This is a Vercel serverless function, which can be typed with Vercel's provided types.
-// For this environment, we'll use a generic Request/Response structure.
-// Note: In a real Vercel project you might install `@vercel/node` for types.
-// We'll define simple interfaces for what we expect.
+// This is a Vercel serverless function. We'll define simple interfaces for what we expect.
 interface VercelRequest {
     method?: string;
     body: {
@@ -18,8 +14,15 @@ interface VercelRequest {
 interface VercelResponse {
     status: (statusCode: number) => VercelResponse;
     json: (body: any) => void;
+    setHeader: (key: string, value: string) => void;
 }
 
+// Re-implement the Type enum as it's not available in the serverless environment from the SDK
+const Type = {
+    OBJECT: 'OBJECT',
+    STRING: 'STRING',
+    ARRAY: 'ARRAY',
+};
 
 const geminiPrompt = `
 You are MoonPath, the content and logic engine for a mobile app that delivers daily lunar guidance and offers optional paid subscription plans.
@@ -139,15 +142,15 @@ const specialReadingSchema = {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
+        res.setHeader('Allow', 'POST');
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    if (!process.env.API_KEY) {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
         return res.status(500).json({ error: 'Configuration Error: API_KEY is not set on the server.' });
     }
     
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
     const { userName, userMood, moonPhase, currentPlan } = req.body;
 
     const isSpecialReading = currentPlan === Plan.PREMIUM && (moonPhase === MoonPhase.FULL_MOON || moonPhase === MoonPhase.NEW_MOON);
@@ -163,24 +166,48 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     moon_phase: "${moonPhase}"
     current_plan: "${currentPlan}"
     `;
+    
+    const fullPrompt = `${geminiPrompt}\n${userPrompt}`;
+
+    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: `${geminiPrompt}\n${userPrompt}`,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: schema,
+        const geminiResponse = await fetch(GEMINI_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: fullPrompt }]
+                }],
+                generationConfig: {
+                    response_mime_type: "application/json",
+                    response_schema: schema,
+                }
+            })
         });
 
-        const jsonText = response.text.trim();
+        const geminiData = await geminiResponse.json();
+
+        if (!geminiResponse.ok || !geminiData.candidates) {
+            console.error('Error from Gemini API:', geminiData.error ? JSON.stringify(geminiData.error) : 'No candidates in response');
+            const errorMessage = geminiData.error?.message || "The moon's message is veiled at the moment.";
+            return res.status(500).json({ error: errorMessage });
+        }
+
+        const jsonText = geminiData.candidates[0]?.content?.parts[0]?.text;
+        if (!jsonText) {
+             console.error('Could not extract JSON text from Gemini response:', JSON.stringify(geminiData));
+             return res.status(500).json({ error: "Received an invalid format from the moon's whisper." });
+        }
+        
         const parsedJson = JSON.parse(jsonText);
 
         res.status(200).json(parsedJson as DailyReading | SpecialReading);
 
     } catch (error) {
-        console.error(`Error generating ${taskType} in serverless function:`, error);
+        console.error(`Error in serverless function for ${taskType}:`, error);
         res.status(500).json({ error: "The moon's message is veiled at the moment. Please try again later." });
     }
 }

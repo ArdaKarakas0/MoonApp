@@ -1,4 +1,3 @@
-import { GoogleGenAI, Type } from "@google/genai";
 import { HistoricReading, WeeklyReport } from '../types';
 
 // We'll define simple interfaces for what we expect.
@@ -13,7 +12,14 @@ interface VercelRequest {
 interface VercelResponse {
     status: (statusCode: number) => VercelResponse;
     json: (body: any) => void;
+    setHeader: (key: string, value: string) => void;
 }
+
+// Re-implement the Type enum as it's not available in the serverless environment from the SDK
+const Type = {
+    OBJECT: 'OBJECT',
+    STRING: 'STRING',
+};
 
 const geminiPrompt = `
 You are MoonPath, the content and logic engine for a mobile app that delivers daily lunar guidance and offers optional paid subscription plans. Your style is calm, mystical, poetic, and modern.
@@ -75,14 +81,14 @@ const weeklyReportSchema = {
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
     if (req.method !== 'POST') {
+        res.setHeader('Allow', 'POST');
         return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
-    if (!process.env.API_KEY) {
+    const apiKey = process.env.API_KEY;
+    if (!apiKey) {
         return res.status(500).json({ error: 'Configuration Error: API_KEY is not set on the server.' });
     }
-
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
     const { userName, history } = req.body;
 
@@ -102,17 +108,40 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     recent_history: ${JSON.stringify(sanitizedHistory, null, 2)}
     `;
 
+    const fullPrompt = `${geminiPrompt}\n${userPrompt}`;
+    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
     try {
-        const response = await ai.models.generateContent({
-            model: 'gemini-2.5-flash',
-            contents: `${geminiPrompt}\n${userPrompt}`,
-            config: {
-                responseMimeType: "application/json",
-                responseSchema: weeklyReportSchema,
+        const geminiResponse = await fetch(GEMINI_API_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
             },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: fullPrompt }]
+                }],
+                generationConfig: {
+                    response_mime_type: "application/json",
+                    response_schema: weeklyReportSchema,
+                }
+            })
         });
 
-        const jsonText = response.text.trim();
+        const geminiData = await geminiResponse.json();
+
+        if (!geminiResponse.ok || !geminiData.candidates) {
+            console.error('Error from Gemini API:', geminiData.error ? JSON.stringify(geminiData.error) : 'No candidates in response');
+            const errorMessage = geminiData.error?.message || "The moon's currents are unclear right now.";
+            return res.status(500).json({ error: errorMessage });
+        }
+
+        const jsonText = geminiData.candidates[0]?.content?.parts[0]?.text;
+        if (!jsonText) {
+            console.error('Could not extract JSON text from Gemini response:', JSON.stringify(geminiData));
+            return res.status(500).json({ error: "Received an invalid format from the moon's weekly reflection." });
+        }
+
         const parsedJson = JSON.parse(jsonText);
 
         res.status(200).json(parsedJson as WeeklyReport);
