@@ -94,16 +94,3 @@ export interface WeeklyReport {
     description: string;
   };
 }
-
-// Add global definitions for the AI Studio environment
-// Fix: Defined a named interface `AIStudio` to resolve type conflicts with other global declarations.
-export interface AIStudio {
-  hasSelectedApiKey: () => Promise<boolean>;
-  openSelectKey: () => Promise<void>;
-}
-
-declare global {
-  interface Window {
-    aistudio?: AIStudio;
-  }
-}

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { MoonPhase } from '../types';
 import { CogIcon } from './icons/CogIcon';
@@ -7,13 +8,11 @@ interface OnboardingProps {
   onStart: (name: string, mood: string, moonPhase: MoonPhase) => void;
   onManageSubscription: () => void;
   error?: string | null;
-  isKeyReady: boolean;
-  onSelectKey: () => void;
 }
 
 const moods = ["Reflective", "Hopeful", "Weary", "Restless", "Joyful", "Searching"];
 
-export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscription, error, isKeyReady, onSelectKey }) => {
+export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscription, error }) => {
   const [name, setName] = useState('');
   const [mood, setMood] = useState('');
   const [moonPhase, setMoonPhase] = useState<MoonPhase>(MoonPhase.FULL_MOON);
@@ -24,23 +23,6 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscri
       onStart(name, mood, moonPhase);
     }
   };
-
-  const ApiKeySelection = () => (
-    <div className="text-center space-y-6 pt-4">
-        <p className="text-deep-sapphire/90 dark:text-starlight-silver/90">
-            To connect with the lunar currents, please select your Google AI Studio API Key.
-        </p>
-        <button 
-            onClick={onSelectKey} 
-            className="w-full bg-sunbeam-gold dark:bg-moonbeam-gold text-white dark:text-celestial-blue font-bold py-3 px-4 rounded-lg hover:bg-amber-600 dark:hover:bg-amber-300 transition-colors duration-300 shadow-lg shadow-sunbeam-gold/30 dark:shadow-moonbeam-gold/20"
-        >
-            Select API Key
-        </button>
-        <p className="text-xs text-deep-sapphire/60 dark:text-starlight-silver/60 pt-2">
-            Your API key is required to generate readings. For information about pricing, see the <a href="https://ai.google.dev/gemini-api/docs/billing" target="_blank" rel="noopener noreferrer" className="underline hover:text-sunbeam-gold dark:hover:text-moonbeam-gold transition-colors">billing documentation</a>.
-        </p>
-    </div>
-  );
 
   const ReadingForm = () => (
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -118,7 +100,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscri
             </div>
         )}
 
-        {isKeyReady ? <ReadingForm /> : <ApiKeySelection />}
+        <ReadingForm />
 
          <div className="mt-6 text-center">
             <button onClick={onManageSubscription} className="inline-flex items-center text-xs text-deep-sapphire/60 dark:text-starlight-silver/60 hover:text-sunbeam-gold dark:hover:text-moonbeam-gold transition-colors">

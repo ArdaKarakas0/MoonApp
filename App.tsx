@@ -1,3 +1,4 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Onboarding } from './components/Onboarding';
 import { Loading } from './components/Loading';
@@ -81,28 +82,6 @@ const App: React.FC = () => {
   const [isViewingFromHistory, setIsViewingFromHistory] = useState(false);
   const [weeklyReport, setWeeklyReport] = useState<WeeklyReport | null>(null);
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
-  const [isKeyReady, setIsKeyReady] = useState(false);
-  const [isCheckingKey, setIsCheckingKey] = useState(true);
-
-  useEffect(() => {
-    const checkApiKey = async () => {
-      if (window.aistudio) {
-        try {
-          const hasKey = await window.aistudio.hasSelectedApiKey();
-          setIsKeyReady(hasKey);
-        } catch (e) {
-          console.error("Error checking for API key:", e);
-          setIsKeyReady(false);
-        }
-      } else {
-        // If aistudio is not present, assume key is available via process.env
-        // for local development or other environments.
-        setIsKeyReady(true);
-      }
-      setIsCheckingKey(false);
-    };
-    checkApiKey();
-  }, []);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -136,14 +115,6 @@ const App: React.FC = () => {
   const toggleTheme = () => {
     setTheme(prevTheme => (prevTheme === 'light' ? 'dark' : 'light'));
   };
-  
-  const handleSelectKey = useCallback(async () => {
-      if (window.aistudio) {
-          await window.aistudio.openSelectKey();
-          // Assume success to avoid race conditions and enable the form immediately.
-          setIsKeyReady(true);
-      }
-  }, []);
 
   const handleGetReading = useCallback(async (name: string, mood: string, moonPhase: MoonPhase) => {
     setIsLoading(true);
@@ -175,13 +146,7 @@ const App: React.FC = () => {
 
       setScreen('reading');
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
-      if (errorMessage.includes("was not found")) {
-        setIsKeyReady(false);
-        setError("Your API Key may be invalid or expired. Please select it again.");
-      } else {
-        setError(errorMessage);
-      }
+      setError(err instanceof Error ? err.message : "An unknown error occurred.");
       setScreen('onboarding');
     } finally {
       setIsLoading(false);
@@ -275,14 +240,8 @@ const App: React.FC = () => {
         setScreen('weekly_report');
     } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
-        if (errorMessage.includes("was not found")) {
-            setIsKeyReady(false);
-            setScreen('onboarding');
-            setError("Your API Key may be invalid or expired. Please select it again.");
-        } else {
-            setScreen('history');
-            setToastMessage(`Could not generate report: ${errorMessage}`);
-        }
+        setScreen('history');
+        setToastMessage(`Could not generate report: ${errorMessage}`);
     } finally {
         setIsLoading(false);
     }
@@ -294,13 +253,9 @@ const App: React.FC = () => {
   }
 
   const renderScreen = () => {
-    if (isCheckingKey) {
-        return <div className="fixed inset-0 flex items-center justify-center"><p className="text-lg font-serif tracking-wider text-sunbeam-gold dark:text-moonbeam-gold animate-pulse">Initializing...</p></div>
-    }
-    
     switch (screen) {
       case 'onboarding':
-        return <Onboarding onStart={handleGetReading} error={error} onManageSubscription={handleManageSubscription} isKeyReady={isKeyReady} onSelectKey={handleSelectKey} />;
+        return <Onboarding onStart={handleGetReading} error={error} onManageSubscription={handleManageSubscription} />;
       case 'reading':
         return currentReading ? (
             <DailyReadingDisplay 
@@ -313,7 +268,7 @@ const App: React.FC = () => {
                 onBackToHistory={handleBackToHistory}
                 onUpdateJournal={handleUpdateJournal}
             />
-        ) : <Onboarding onStart={handleGetReading} error="Something went wrong, please try again." onManageSubscription={handleManageSubscription} isKeyReady={isKeyReady} onSelectKey={handleSelectKey} />;
+        ) : <Onboarding onStart={handleGetReading} error="Something went wrong, please try again." onManageSubscription={handleManageSubscription} />;
       case 'subscription':
         return <SubscriptionPage plans={availablePlans} currentPlan={currentPlan} onSelectPlan={handleSelectPlan} onClose={handleCloseSubscription} />;
       case 'history':
@@ -342,7 +297,7 @@ const App: React.FC = () => {
           />
         );
       default:
-        return <Onboarding onStart={handleGetReading} onManageSubscription={handleManageSubscription} isKeyReady={isKeyReady} onSelectKey={handleSelectKey} />;
+        return <Onboarding onStart={handleGetReading} onManageSubscription={handleManageSubscription} />;
     }
   };
 
