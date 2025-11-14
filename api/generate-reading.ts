@@ -175,15 +175,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                systemInstruction: {
+                system_instruction: {
                     parts: [{ text: geminiPrompt }]
                 },
                 contents: [{
                     parts: [{ text: userPrompt }]
                 }],
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: schema,
+                generation_config: {
+                    response_mime_type: "application/json",
+                    response_schema: schema,
                 }
             })
         });
