@@ -172,7 +172,12 @@ const weeklyReportSchema = {
     required: ['dateRange', 'moodAnalysis', 'thematicInsights', 'forwardGuidance']
 };
 
-
+// FIX: Use process.env.API_KEY for the API key as per the guidelines. This also resolves the TypeScript error.
+if (!process.env.API_KEY) {
+  // This will prevent the app from crashing in a confusing way if the key is missing.
+  // The error will be caught and displayed on the Onboarding screen.
+  throw new Error("A quiet fog... API_KEY environment variable is not set.");
+}
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 
