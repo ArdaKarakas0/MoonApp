@@ -5,7 +5,7 @@ import { Loading } from './components/Loading';
 import { DailyReadingDisplay } from './components/DailyReading';
 import { SubscriptionPage } from './components/Subscription';
 import { History } from './components/History';
-import { generateReading, generateWeeklyReport } from './services/geminiService';
+import { generateReading, generateWeeklyReport, generatePlaceholderImage } from './services/geminiService';
 import { Screen, MoonPhase, Plan, SubscriptionPlan, HistoricReading, WeeklyReport } from './types';
 import { secureGetItem, secureSetItem } from './utils/secureStore';
 import { Toast } from './components/Toast';
@@ -106,12 +106,29 @@ const App: React.FC = () => {
     
     try {
       const readingData = await generateReading(name, mood, moonPhase, currentPlan);
+      
+      let imageUrl: string | undefined = undefined;
+      // Generate an image only for daily readings to add visual flair
+      if (readingData.readingType === 'daily') {
+          try {
+              const imagePrompt = `A mystical, abstract, artistic representation of ${readingData.lunarSymbol.name}, symbolizing ${readingData.lunarSymbol.meaning}. Serene, dreamlike, with celestial and ethereal colors.`;
+              const generatedImageUrl = await generatePlaceholderImage(imagePrompt);
+              if (generatedImageUrl) {
+                  imageUrl = generatedImageUrl;
+              }
+          } catch (imgErr) {
+              console.warn("Could not generate placeholder image:", imgErr);
+              // Do not block the user, just proceed without an image.
+          }
+      }
+
       const newHistoricReading: HistoricReading = {
           id: new Date().toISOString() + Math.random(), // Add random number for more uniqueness
           date: new Date().toISOString(),
           userInputs: { name, mood, moonPhase },
           reading: readingData,
           journalEntry: '',
+          placeholderImageUrl: imageUrl,
       };
 
       setCurrentReading(newHistoricReading);

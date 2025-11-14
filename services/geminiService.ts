@@ -1,4 +1,4 @@
-import { GoogleGenAI, Type } from "@google/genai";
+import { GoogleGenAI, Type, Modality } from "@google/genai";
 import { MoonPhase, DailyReading, Plan, HistoricReading, WeeklyReport, SpecialReading } from '../types';
 
 const geminiPrompt = `
@@ -250,5 +250,31 @@ export const generateWeeklyReport = async (userName: string, history: HistoricRe
   } catch (error) {
     console.error("Error generating weekly report:", error);
     throw new Error("The moon's currents are unclear right now. A weekly reflection is not yet available.");
+  }
+};
+
+export const generatePlaceholderImage = async (prompt: string): Promise<string | null> => {
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash-image',
+      contents: {
+        parts: [{ text: prompt }],
+      },
+      config: {
+        responseModalities: [Modality.IMAGE],
+      },
+    });
+
+    for (const part of response.candidates[0].content.parts) {
+      if (part.inlineData) {
+        const base64ImageBytes: string = part.inlineData.data;
+        return `data:image/png;base64,${base64ImageBytes}`;
+      }
+    }
+    return null;
+  } catch (error) {
+    console.error("Error generating placeholder image:", error);
+    // Return null to allow the app to proceed without an image
+    return null;
   }
 };
