@@ -1,4 +1,5 @@
-import { GoogleGenAI, Type, Modality } from "@google/genai";
+
+import { GoogleGenAI, Type } from "@google/genai";
 import { MoonPhase, DailyReading, Plan, HistoricReading, WeeklyReport, SpecialReading } from '../types';
 
 const geminiPrompt = `
@@ -172,9 +173,8 @@ const weeklyReportSchema = {
     required: ['dateRange', 'moodAnalysis', 'thematicInsights', 'forwardGuidance']
 };
 
-// Fix: Adhering to the @google/genai coding guidelines for API key initialization.
-// The API key must be obtained exclusively from `process.env.API_KEY` and is assumed to be pre-configured.
-// This also resolves the TypeScript error 'Property 'env' does not exist on type 'ImportMeta''.
+// FIX: Correctly initialize GoogleGenAI and access the API key as per the guidelines.
+// The API key should be accessed from `process.env.API_KEY` and the client initialized directly.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 
@@ -203,19 +203,13 @@ export const generateReading = async (userName: string, userMood: string, moonPh
       },
     });
 
-    const jsonText = response.text;
-    if (!jsonText) {
-        throw new Error("Received an empty response from the AI.");
-    }
-    const parsedJson = JSON.parse(jsonText.trim());
+    const jsonText = response.text.trim();
+    const parsedJson = JSON.parse(jsonText);
 
     return parsedJson as DailyReading | SpecialReading;
 
   } catch (error) {
     console.error(`Error generating ${taskType}:`, error);
-    if (error instanceof Error && error.message.includes("API key not valid")) {
-        throw new Error("The connection to the lunar currents is weak. Please check the API Key.");
-    }
     throw new Error("The moon's message is veiled at the moment. Please try again later.");
   }
 };
@@ -247,42 +241,13 @@ export const generateWeeklyReport = async (userName: string, history: HistoricRe
       },
     });
 
-    const jsonText = response.text;
-    if (!jsonText) {
-        throw new Error("Received an empty response from the AI for the weekly report.");
-    }
-    const parsedJson = JSON.parse(jsonText.trim());
+    const jsonText = response.text.trim();
+    const parsedJson = JSON.parse(jsonText);
 
     return parsedJson as WeeklyReport;
 
   } catch (error) {
     console.error("Error generating weekly report:", error);
     throw new Error("The moon's currents are unclear right now. A weekly reflection is not yet available.");
-  }
-};
-
-export const generatePlaceholderImage = async (prompt: string): Promise<string | null> => {
-  try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash-image',
-      contents: {
-        parts: [{ text: prompt }],
-      },
-      config: {
-        responseModalities: [Modality.IMAGE],
-      },
-    });
-
-    const part = response.candidates?.[0]?.content?.parts?.[0];
-    if (part?.inlineData?.data) {
-        const base64ImageBytes: string = part.inlineData.data;
-        return `data:image/png;base64,${base64ImageBytes}`;
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Error generating placeholder image:", error);
-    // Return null to allow the app to proceed without an image
-    return null;
   }
 };

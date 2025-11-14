@@ -76,7 +76,6 @@ export interface HistoricReading {
   };
   reading: DailyReading | SpecialReading; // The content from the AI
   journalEntry: string; // User's personal notes
-  placeholderImageUrl?: string; // URL for the AI-generated placeholder image
 }
 
 // This is the content structure for the weekly report returned by the AI

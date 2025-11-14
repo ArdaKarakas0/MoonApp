@@ -1,14 +1,8 @@
+
 import React, { useState } from 'react';
 import { SubscriptionPlan, Plan } from '../types';
 import { MoonIcon } from './icons/MoonIcon';
 import { PaymentModal } from './PaymentModal';
-import { loadStripe } from '@stripe/stripe-js';
-import { Elements } from '@stripe/react-stripe-js';
-
-// This is your publishable key from the Stripe dashboard.
-// NOTE: Using Stripe's official public test key for this demo. 
-// In a real app, use an environment variable for your own key.
-const stripePromise = loadStripe('pk_test_6pRNASCoBOKtIshFeQd4XMUh');
 
 interface SubscriptionPageProps {
   plans: SubscriptionPlan[];
@@ -107,13 +101,11 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ plans, curre
             </footer>
         </div>
         {selectedPlanForPayment && (
-            <Elements stripe={stripePromise}>
-              <PaymentModal 
-                  plan={selectedPlanForPayment}
-                  onClose={() => setSelectedPlanForPayment(null)}
-                  onSuccess={handlePaymentSuccess}
-              />
-            </Elements>
+            <PaymentModal 
+                plan={selectedPlanForPayment}
+                onClose={() => setSelectedPlanForPayment(null)}
+                onSuccess={handlePaymentSuccess}
+            />
         )}
     </div>
   );

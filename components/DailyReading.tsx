@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { HistoricReading, Plan, SpecialReading, DailyReading } from '../types';
 import { CogIcon } from './icons/CogIcon';
 import { HistoryIcon } from './icons/HistoryIcon';
+import { MoonIcon } from './icons/MoonIcon';
 
 interface DailyReadingProps {
   reading: HistoricReading;
@@ -122,16 +124,6 @@ export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, curr
           <h1 className="text-4xl sm:text-5xl font-serif font-bold text-deep-sapphire dark:text-white">{readingContent.moonPhaseHeading.title}</h1>
           <p className="mt-2 text-deep-sapphire/80 dark:text-starlight-silver/80">{readingContent.moonPhaseHeading.description}</p>
         </header>
-
-        {reading.placeholderImageUrl && (
-            <div className="my-6">
-                <img 
-                    src={reading.placeholderImageUrl} 
-                    alt={reading.reading.readingType === 'daily' ? reading.reading.lunarSymbol.name : 'Mystical lunar representation'} 
-                    className="w-full h-auto max-h-72 object-cover rounded-xl shadow-lg shadow-gray-400/20 dark:shadow-glow-white border border-cloud-gray/30 dark:border-starlight-silver/10"
-                />
-            </div>
-        )}
 
         <div className="text-center bg-white/40 dark:bg-celestial-blue/40 py-4 px-6 rounded-lg border border-cloud-gray/30 dark:border-starlight-silver/10">
             <p className="text-sm text-deep-sapphire/70 dark:text-starlight-silver/70">Your Lunar Alignment</p>

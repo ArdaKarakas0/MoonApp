@@ -1,10 +1,11 @@
+
 import React, { useState, useCallback, useEffect } from 'react';
 import { Onboarding } from './components/Onboarding';
 import { Loading } from './components/Loading';
 import { DailyReadingDisplay } from './components/DailyReading';
 import { SubscriptionPage } from './components/Subscription';
 import { History } from './components/History';
-import { generateReading, generateWeeklyReport, generatePlaceholderImage } from './services/geminiService';
+import { generateReading, generateWeeklyReport } from './services/geminiService';
 import { Screen, MoonPhase, Plan, SubscriptionPlan, HistoricReading, WeeklyReport } from './types';
 import { secureGetItem, secureSetItem } from './utils/secureStore';
 import { Toast } from './components/Toast';
@@ -59,6 +60,7 @@ const App: React.FC = () => {
   const [screen, setScreen] = useState<Screen>('onboarding');
   const [previousScreen, setPreviousScreen] = useState<Screen>('onboarding');
   const [currentReading, setCurrentReading] = useState<HistoricReading | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<Plan>(Plan.FREE);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -98,34 +100,18 @@ const App: React.FC = () => {
   };
 
   const handleGetReading = useCallback(async (name: string, mood: string, moonPhase: MoonPhase) => {
+    setIsLoading(true);
     setError(null);
     setScreen('loading');
     
     try {
       const readingData = await generateReading(name, mood, moonPhase, currentPlan);
-      
-      let imageUrl: string | undefined = undefined;
-      // Generate an image only for daily readings to add visual flair
-      if (readingData.readingType === 'daily') {
-          try {
-              const imagePrompt = `A mystical, abstract, artistic representation of ${readingData.lunarSymbol.name}, symbolizing ${readingData.lunarSymbol.meaning}. Serene, dreamlike, with celestial and ethereal colors.`;
-              const generatedImageUrl = await generatePlaceholderImage(imagePrompt);
-              if (generatedImageUrl) {
-                  imageUrl = generatedImageUrl;
-              }
-          } catch (imgErr) {
-              console.warn("Could not generate placeholder image:", imgErr);
-              // Do not block the user, just proceed without an image.
-          }
-      }
-
       const newHistoricReading: HistoricReading = {
           id: new Date().toISOString() + Math.random(), // Add random number for more uniqueness
           date: new Date().toISOString(),
           userInputs: { name, mood, moonPhase },
           reading: readingData,
           journalEntry: '',
-          placeholderImageUrl: imageUrl,
       };
 
       setCurrentReading(newHistoricReading);
@@ -146,6 +132,8 @@ const App: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
       setError(errorMessage);
       setScreen('onboarding');
+    } finally {
+      setIsLoading(false);
     }
   }, [currentPlan]);
   
@@ -213,6 +201,7 @@ const App: React.FC = () => {
   };
 
   const handleGenerateWeeklyReport = useCallback(async () => {
+    setIsLoading(true);
     setError(null);
     setScreen('loading');
     
@@ -223,6 +212,7 @@ const App: React.FC = () => {
 
     if (recentHistory.length < 3) {
         setToastMessage("You need at least 3 readings in the last 7 days to generate a report.");
+        setIsLoading(false);
         setScreen('history');
         return;
     }
@@ -237,6 +227,8 @@ const App: React.FC = () => {
         const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
         setScreen('history');
         setToastMessage(`Could not generate report: ${errorMessage}`);
+    } finally {
+        setIsLoading(false);
     }
   }, [readingHistory]);
 
