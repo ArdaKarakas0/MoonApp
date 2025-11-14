@@ -172,12 +172,9 @@ const weeklyReportSchema = {
     required: ['dateRange', 'moodAnalysis', 'thematicInsights', 'forwardGuidance']
 };
 
-// FIX: Use process.env.API_KEY for the API key as per the guidelines. This also resolves the TypeScript error.
-if (!process.env.API_KEY) {
-  // This will prevent the app from crashing in a confusing way if the key is missing.
-  // The error will be caught and displayed on the Onboarding screen.
-  throw new Error("A quiet fog... API_KEY environment variable is not set.");
-}
+// Fix: Adhering to the @google/genai coding guidelines for API key initialization.
+// The API key must be obtained exclusively from `process.env.API_KEY` and is assumed to be pre-configured.
+// This also resolves the TypeScript error 'Property 'env' does not exist on type 'ImportMeta''.
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 
@@ -278,7 +275,7 @@ export const generatePlaceholderImage = async (prompt: string): Promise<string |
 
     const part = response.candidates?.[0]?.content?.parts?.[0];
     if (part?.inlineData?.data) {
-        const base64ImageBytes = part.inlineData.data;
+        const base64ImageBytes: string = part.inlineData.data;
         return `data:image/png;base64,${base64ImageBytes}`;
     }
 
