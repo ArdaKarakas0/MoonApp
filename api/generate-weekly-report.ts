@@ -103,15 +103,21 @@ Synthesize the provided data; do not simply list the inputs.
             })
         });
 
-        const geminiData = await geminiResponse.json();
-
-        if (!geminiResponse.ok || !geminiData.candidates) {
-            console.error('Error from Gemini API:', geminiData.error ? JSON.stringify(geminiData.error) : 'No candidates in response');
-            const errorMessage = geminiData.error?.message || "The moon's currents are unclear right now.";
-            return res.status(500).json({ error: errorMessage });
+        if (!geminiResponse.ok) {
+            const errorBody = await geminiResponse.text();
+            console.error(`Error from Gemini API: Status ${geminiResponse.status}`, errorBody);
+            try {
+                const errorJson = JSON.parse(errorBody);
+                const errorMessage = errorJson.error?.message || "The moon's currents are unclear right now.";
+                return res.status(geminiResponse.status).json({ error: errorMessage });
+            } catch (e) {
+                return res.status(geminiResponse.status).json({ error: "The moon's currents are unclear right now. A weekly reflection is not yet available." });
+            }
         }
 
-        const jsonText = geminiData.candidates[0]?.content?.parts[0]?.text;
+        const geminiData = await geminiResponse.json();
+
+        const jsonText = geminiData.candidates?.[0]?.content?.parts[0]?.text;
         if (!jsonText) {
             console.error('Could not extract JSON text from Gemini response:', JSON.stringify(geminiData));
             return res.status(500).json({ error: "Received an invalid format from the moon's weekly reflection." });
