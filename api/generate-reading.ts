@@ -157,7 +157,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const taskType = isSpecialReading ? 'special_reading' : 'daily_reading';
     const schema = isSpecialReading ? specialReadingSchema : dailyReadingSchema;
 
-    const userPrompt = `
+    const combinedPrompt = `
+    ${geminiPrompt}
+
     INSTRUCTIONS FOR THIS SPECIFIC REQUEST:
     task_type: '${taskType}'
     user_name: "${userName || 'the seeker'}"
@@ -175,11 +177,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                system_instruction: {
-                    parts: [{ text: geminiPrompt }]
-                },
                 contents: [{
-                    parts: [{ text: userPrompt }]
+                    parts: [{ text: combinedPrompt }]
                 }],
                 generation_config: {
                     response_mime_type: "application/json",

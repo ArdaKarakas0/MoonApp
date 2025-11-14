@@ -100,7 +100,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         lunarSymbol: 'lunarSymbol' in h.reading ? h.reading.lunarSymbol.name : undefined,
     }));
 
-    const userPrompt = `
+    const combinedPrompt = `
+    ${geminiPrompt}
+
     INSTRUCTIONS FOR THIS SPECIFIC REQUEST:
     task_type: 'weekly_report'
     user_name: "${userName || 'the seeker'}"
@@ -116,11 +118,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                system_instruction: {
-                    parts: [{ text: geminiPrompt }]
-                },
                 contents: [{
-                    parts: [{ text: userPrompt }]
+                    parts: [{ text: combinedPrompt }]
                 }],
                 generation_config: {
                     response_mime_type: "application/json",
