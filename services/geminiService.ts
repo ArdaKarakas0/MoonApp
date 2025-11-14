@@ -172,15 +172,10 @@ const weeklyReportSchema = {
     required: ['dateRange', 'moodAnalysis', 'thematicInsights', 'forwardGuidance']
 };
 
-// FIX: Switched from `import.meta.env.VITE_API_KEY` to `process.env.API_KEY` to get the API key.
-// This resolves the TypeScript error and aligns with the coding guidelines.
-const apiKey = process.env.API_KEY;
-
-if (!apiKey) {
-  // This error will be shown on the onboarding screen if the key is missing.
-  throw new Error("API_KEY environment variable is not set. Please configure it in your deployment settings.");
-}
-const ai = new GoogleGenAI({ apiKey });
+// Fix: Adhere to @google/genai guidelines for API key initialization.
+// The API key must be sourced from process.env.API_KEY, which is assumed
+// to be configured in the deployment environment.
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 
 export const generateReading = async (userName: string, userMood: string, moonPhase: MoonPhase, currentPlan: Plan): Promise<DailyReading | SpecialReading> => {
