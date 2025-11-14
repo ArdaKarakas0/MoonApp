@@ -172,9 +172,7 @@ const weeklyReportSchema = {
     required: ['dateRange', 'moodAnalysis', 'thematicInsights', 'forwardGuidance']
 };
 
-// Fix: Adhere to @google/genai guidelines for API key initialization.
-// The API key must be sourced from process.env.API_KEY, which is assumed
-// to be configured in the deployment environment.
+
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 
@@ -210,6 +208,9 @@ export const generateReading = async (userName: string, userMood: string, moonPh
 
   } catch (error) {
     console.error(`Error generating ${taskType}:`, error);
+    if (error instanceof Error && error.message.includes("API key not valid")) {
+        throw new Error("The connection to the lunar currents is weak. Please check the API Key.");
+    }
     throw new Error("The moon's message is veiled at the moment. Please try again later.");
   }
 };
