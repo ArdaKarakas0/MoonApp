@@ -1,11 +1,6 @@
+
 import { GoogleGenAI, Type } from "@google/genai";
 import { MoonPhase, DailyReading, Plan, HistoricReading, WeeklyReport, SpecialReading } from '../types';
-
-// FIX: Corrected API key initialization to follow coding guidelines.
-// The API key must be sourced from process.env.API_KEY and is assumed to be pre-configured.
-// This resolves the TypeScript error related to `import.meta.env`.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-
 
 const geminiPrompt = `
 You are MoonPath, the content and logic engine for a mobile app that delivers daily lunar guidance and offers optional paid subscription plans.
@@ -179,6 +174,8 @@ const weeklyReportSchema = {
 };
 
 export const generateReading = async (userName: string, userMood: string, moonPhase: MoonPhase, currentPlan: Plan): Promise<DailyReading | SpecialReading> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
   const isSpecialReading = currentPlan === Plan.PREMIUM && (moonPhase === MoonPhase.FULL_MOON || moonPhase === MoonPhase.NEW_MOON);
   const taskType = isSpecialReading ? 'special_reading' : 'daily_reading';
   const schema = isSpecialReading ? specialReadingSchema : dailyReadingSchema;
@@ -203,10 +200,7 @@ export const generateReading = async (userName: string, userMood: string, moonPh
       },
     });
 
-    const jsonText = response.text?.trim();
-    if (!jsonText) {
-        throw new Error("Received an empty response from the model.");
-    }
+    const jsonText = response.text.trim();
     const parsedJson = JSON.parse(jsonText);
 
     return parsedJson as DailyReading | SpecialReading;
@@ -218,6 +212,8 @@ export const generateReading = async (userName: string, userMood: string, moonPh
 };
 
 export const generateWeeklyReport = async (userName: string, history: HistoricReading[]): Promise<WeeklyReport> => {
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+
   const sanitizedHistory = history.map(h => ({
       date: h.date,
       mood: h.userInputs.mood,
@@ -244,10 +240,7 @@ export const generateWeeklyReport = async (userName: string, history: HistoricRe
       },
     });
 
-    const jsonText = response.text?.trim();
-     if (!jsonText) {
-        throw new Error("Received an empty response from the model.");
-    }
+    const jsonText = response.text.trim();
     const parsedJson = JSON.parse(jsonText);
 
     return parsedJson as WeeklyReport;
