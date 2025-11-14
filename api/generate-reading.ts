@@ -158,7 +158,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const schema = isSpecialReading ? specialReadingSchema : dailyReadingSchema;
 
     const userPrompt = `
-    ---
     INSTRUCTIONS FOR THIS SPECIFIC REQUEST:
     task_type: '${taskType}'
     user_name: "${userName || 'the seeker'}"
@@ -167,8 +166,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     current_plan: "${currentPlan}"
     `;
     
-    const fullPrompt = `${geminiPrompt}\n${userPrompt}`;
-
     const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     try {
@@ -178,8 +175,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                systemInstruction: {
+                    parts: [{ text: geminiPrompt }]
+                },
                 contents: [{
-                    parts: [{ text: fullPrompt }]
+                    parts: [{ text: userPrompt }]
                 }],
                 generationConfig: {
                     responseMimeType: "application/json",

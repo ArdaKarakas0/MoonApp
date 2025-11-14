@@ -101,14 +101,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }));
 
     const userPrompt = `
-    ---
     INSTRUCTIONS FOR THIS SPECIFIC REQUEST:
     task_type: 'weekly_report'
     user_name: "${userName || 'the seeker'}"
     recent_history: ${JSON.stringify(sanitizedHistory, null, 2)}
     `;
 
-    const fullPrompt = `${geminiPrompt}\n${userPrompt}`;
     const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     try {
@@ -118,8 +116,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
+                systemInstruction: {
+                    parts: [{ text: geminiPrompt }]
+                },
                 contents: [{
-                    parts: [{ text: fullPrompt }]
+                    parts: [{ text: userPrompt }]
                 }],
                 generationConfig: {
                     responseMimeType: "application/json",
