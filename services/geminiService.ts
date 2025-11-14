@@ -206,8 +206,11 @@ export const generateReading = async (userName: string, userMood: string, moonPh
       },
     });
 
-    const jsonText = response.text.trim();
-    const parsedJson = JSON.parse(jsonText);
+    const jsonText = response.text;
+    if (!jsonText) {
+        throw new Error("Received an empty response from the AI.");
+    }
+    const parsedJson = JSON.parse(jsonText.trim());
 
     return parsedJson as DailyReading | SpecialReading;
 
@@ -247,8 +250,11 @@ export const generateWeeklyReport = async (userName: string, history: HistoricRe
       },
     });
 
-    const jsonText = response.text.trim();
-    const parsedJson = JSON.parse(jsonText);
+    const jsonText = response.text;
+    if (!jsonText) {
+        throw new Error("Received an empty response from the AI for the weekly report.");
+    }
+    const parsedJson = JSON.parse(jsonText.trim());
 
     return parsedJson as WeeklyReport;
 
@@ -270,12 +276,12 @@ export const generatePlaceholderImage = async (prompt: string): Promise<string |
       },
     });
 
-    for (const part of response.candidates[0].content.parts) {
-      if (part.inlineData) {
-        const base64ImageBytes: string = part.inlineData.data;
+    const part = response.candidates?.[0]?.content?.parts?.[0];
+    if (part?.inlineData?.data) {
+        const base64ImageBytes = part.inlineData.data;
         return `data:image/png;base64,${base64ImageBytes}`;
-      }
     }
+
     return null;
   } catch (error) {
     console.error("Error generating placeholder image:", error);

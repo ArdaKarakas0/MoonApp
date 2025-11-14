@@ -1,9 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { HistoricReading, Plan, SpecialReading, DailyReading } from '../types';
 import { CogIcon } from './icons/CogIcon';
 import { HistoryIcon } from './icons/HistoryIcon';
-import { MoonIcon } from './icons/MoonIcon';
 
 interface DailyReadingProps {
   reading: HistoricReading;

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { SubscriptionPlan } from '../types';
-import { CreditCardIcon } from './icons/CreditCardIcon';
 import { XIcon } from './icons/XIcon';
 import { CardElement, useStripe, useElements } from '@stripe/react-stripe-js';
 

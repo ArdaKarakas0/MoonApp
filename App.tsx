@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Onboarding } from './components/Onboarding';
 import { Loading } from './components/Loading';
@@ -60,7 +59,6 @@ const App: React.FC = () => {
   const [screen, setScreen] = useState<Screen>('onboarding');
   const [previousScreen, setPreviousScreen] = useState<Screen>('onboarding');
   const [currentReading, setCurrentReading] = useState<HistoricReading | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<Plan>(Plan.FREE);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -100,7 +98,6 @@ const App: React.FC = () => {
   };
 
   const handleGetReading = useCallback(async (name: string, mood: string, moonPhase: MoonPhase) => {
-    setIsLoading(true);
     setError(null);
     setScreen('loading');
     
@@ -149,8 +146,6 @@ const App: React.FC = () => {
       const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
       setError(errorMessage);
       setScreen('onboarding');
-    } finally {
-      setIsLoading(false);
     }
   }, [currentPlan]);
   
@@ -218,7 +213,6 @@ const App: React.FC = () => {
   };
 
   const handleGenerateWeeklyReport = useCallback(async () => {
-    setIsLoading(true);
     setError(null);
     setScreen('loading');
     
@@ -229,7 +223,6 @@ const App: React.FC = () => {
 
     if (recentHistory.length < 3) {
         setToastMessage("You need at least 3 readings in the last 7 days to generate a report.");
-        setIsLoading(false);
         setScreen('history');
         return;
     }
@@ -244,8 +237,6 @@ const App: React.FC = () => {
         const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
         setScreen('history');
         setToastMessage(`Could not generate report: ${errorMessage}`);
-    } finally {
-        setIsLoading(false);
     }
   }, [readingHistory]);
 
