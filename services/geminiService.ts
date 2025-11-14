@@ -217,8 +217,13 @@ export const generateReading = async (userName: string, userMood: string, moonPh
 
   } catch (error) {
     console.error(`Error generating ${taskType}:`, error);
-    if (error instanceof Error && error.message.includes("API_KEY")) {
-        throw error;
+    if (error instanceof Error) {
+        if (error.message.includes("API_KEY")) {
+            throw error;
+        }
+        if (error.message.includes("was not found")) {
+            throw error; // Re-throw to be handled by the UI
+        }
     }
     throw new Error("The moon's message is veiled at the moment. Please try again later.");
   }
@@ -259,8 +264,13 @@ export const generateWeeklyReport = async (userName: string, history: HistoricRe
 
   } catch (error) {
     console.error("Error generating weekly report:", error);
-    if (error instanceof Error && error.message.includes("API_KEY")) {
-        throw error;
+    if (error instanceof Error) {
+        if (error.message.includes("API_KEY")) {
+            throw error;
+        }
+        if (error.message.includes("was not found")) {
+            throw error; // Re-throw to be handled by the UI
+        }
     }
     throw new Error("The moon's currents are unclear right now. A weekly reflection is not yet available.");
   }
