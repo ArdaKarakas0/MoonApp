@@ -1,3 +1,6 @@
+// FIX: Refactor to use the @google/genai SDK for API calls, following best practices.
+import { GoogleGenAI, Type } from '@google/genai';
+
 // Enums copied from `types.ts` to make this function self-contained
 enum MoonPhase {
     NEW_MOON = "New Moon",
@@ -32,13 +35,6 @@ interface VercelResponse {
     json: (body: any) => void;
     setHeader: (key: string, value: string) => void;
 }
-
-// Re-implement the Type enum as it's not available in the serverless environment from the SDK
-const Type = {
-    OBJECT: 'OBJECT',
-    STRING: 'STRING',
-    ARRAY: 'ARRAY',
-};
 
 const dailyReadingSchema = {
   type: Type.OBJECT,
@@ -139,48 +135,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(500).json({ error: 'Configuration Error: API_KEY is not set on the server.' });
     }
     
-    const { userName, userMood, moonPhase, currentPlan } = req.body;
-
-    const isSpecialReading = currentPlan === Plan.PREMIUM && (moonPhase === MoonPhase.FULL_MOON || moonPhase === MoonPhase.NEW_MOON);
-    const schema = isSpecialReading ? specialReadingSchema : dailyReadingSchema;
-    const prompt = createPrompt(userName, userMood, moonPhase, currentPlan, isSpecialReading);
-    
-    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
     try {
-        const geminiResponse = await fetch(GEMINI_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: prompt }]
-                }],
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: schema,
-                }
-            })
+        const { userName, userMood, moonPhase, currentPlan } = req.body;
+
+        const isSpecialReading = currentPlan === Plan.PREMIUM && (moonPhase === MoonPhase.FULL_MOON || moonPhase === MoonPhase.NEW_MOON);
+        const schema = isSpecialReading ? specialReadingSchema : dailyReadingSchema;
+        const prompt = createPrompt(userName, userMood, moonPhase, currentPlan, isSpecialReading);
+        
+        // FIX: Use the @google/genai SDK instead of a manual fetch call.
+        const ai = new GoogleGenAI({ apiKey });
+
+        const geminiResponse = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: schema,
+            }
         });
 
-        if (!geminiResponse.ok) {
-            const errorBody = await geminiResponse.text();
-            console.error(`Error from Gemini API: Status ${geminiResponse.status}`, errorBody);
-            try {
-                const errorJson = JSON.parse(errorBody);
-                const errorMessage = errorJson.error?.message || "The moon's message is veiled at the moment.";
-                return res.status(geminiResponse.status).json({ error: errorMessage });
-            } catch (e) {
-                return res.status(geminiResponse.status).json({ error: "The moon's message is veiled at the moment. Please try again later." });
-            }
-        }
-
-        const geminiData = await geminiResponse.json();
-
-        const jsonText = geminiData.candidates?.[0]?.content?.parts[0]?.text;
+        const jsonText = geminiResponse.text;
         if (!jsonText) {
-            console.error('Could not extract JSON text from Gemini response:', JSON.stringify(geminiData));
+            console.error('Could not extract JSON text from Gemini response:', JSON.stringify(geminiResponse));
             return res.status(500).json({ error: "Received an invalid format from the moon's daily reading." });
         }
 
@@ -190,6 +166,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     } catch (error) {
         console.error("Error generating daily reading in serverless function:", error);
-        res.status(500).json({ error: "The moon's message is veiled at the moment. Please try again later." });
+        const errorMessage = error instanceof Error ? error.message : "The moon's message is veiled at the moment. Please try again later.";
+        res.status(500).json({ error: errorMessage });
     }
 }

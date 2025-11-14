@@ -1,8 +1,6 @@
-
-import React, { useState } from 'react';
+import React from 'react';
 import { SubscriptionPlan, Plan } from '../types';
 import { MoonIcon } from './icons/MoonIcon';
-import { PaymentModal } from './PaymentModal';
 
 interface SubscriptionPageProps {
   plans: SubscriptionPlan[];
@@ -49,23 +47,10 @@ const PlanCard: React.FC<{ plan: SubscriptionPlan; isCurrent: boolean; onSelect:
 
 
 export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ plans, currentPlan, onSelectPlan, onClose }) => {
-  const [selectedPlanForPayment, setSelectedPlanForPayment] = useState<SubscriptionPlan | null>(null);
 
   const handlePlanSelection = (plan: SubscriptionPlan) => {
-    if (plan.name === Plan.FREE) {
-        onSelectPlan(plan.name); // Downgrade directly
-    } else {
-        setSelectedPlanForPayment(plan); // Open payment modal for upgrade
-    }
+    onSelectPlan(plan.name);
   };
-  
-  const handlePaymentSuccess = () => {
-    if (selectedPlanForPayment) {
-        onSelectPlan(selectedPlanForPayment.name);
-    }
-    setSelectedPlanForPayment(null);
-  };
-
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 animate-fade-in">
@@ -73,7 +58,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ plans, curre
             <header className="text-center mb-10">
                 <h1 className="text-4xl sm:text-5xl font-serif font-bold text-deep-sapphire dark:text-white">Choose Your Path</h1>
                 <p className="mt-2 text-deep-sapphire/80 dark:text-starlight-silver/80 max-w-2xl mx-auto">
-                    The moon offers its wisdom freely, but for those who wish to walk a deeper path, enhanced guidance awaits.
+                    Welcome to the MoonPath Beta! Explore all our features for free during this period and help us shape the final journey.
                 </p>
             </header>
 
@@ -90,7 +75,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ plans, curre
 
             <footer className="text-center mt-12 space-y-4">
                 <p className="text-sm text-deep-sapphire/60 dark:text-starlight-silver/60">
-                    Secure payment is handled by our trusted partners. You can change or cancel your plan at any time.
+                    As a thank you for being a beta tester, all plans are free. You can change your plan at any time.
                 </p>
                 <button
                     onClick={onClose}
@@ -100,13 +85,6 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ plans, curre
                 </button>
             </footer>
         </div>
-        {selectedPlanForPayment && (
-            <PaymentModal 
-                plan={selectedPlanForPayment}
-                onClose={() => setSelectedPlanForPayment(null)}
-                onSuccess={handlePaymentSuccess}
-            />
-        )}
     </div>
   );
 };

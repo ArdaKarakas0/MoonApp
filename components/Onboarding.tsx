@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { MoonPhase } from '../types';
 import { CogIcon } from './icons/CogIcon';
@@ -12,20 +11,19 @@ interface OnboardingProps {
 
 const moods = ["Reflective", "Hopeful", "Weary", "Restless", "Joyful", "Searching"];
 
-export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscription, error }) => {
-  const [name, setName] = useState('');
-  const [mood, setMood] = useState('');
-  const [moonPhase, setMoonPhase] = useState<MoonPhase>(MoonPhase.FULL_MOON);
+interface ReadingFormProps {
+    name: string;
+    setName: (name: string) => void;
+    mood: string;
+    setMood: (mood: string) => void;
+    moonPhase: MoonPhase;
+    setMoonPhase: (phase: MoonPhase) => void;
+    handleSubmit: (e: React.FormEvent) => void;
+    disabled: boolean;
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (mood) {
-      onStart(name, mood, moonPhase);
-    }
-  };
-
-  const ReadingForm = () => (
-      <form onSubmit={handleSubmit} className="space-y-6">
+const ReadingForm: React.FC<ReadingFormProps> = ({ name, setName, mood, setMood, moonPhase, setMoonPhase, handleSubmit, disabled }) => (
+    <form onSubmit={handleSubmit} className="space-y-6">
         <div>
           <label htmlFor="name" className="block text-sm font-medium text-deep-sapphire/90 dark:text-starlight-silver/90 mb-2">What name shall the moon whisper?</label>
           <input
@@ -79,13 +77,25 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscri
 
         <button
           type="submit"
-          disabled={!mood}
+          disabled={disabled}
           className="w-full bg-sunbeam-gold dark:bg-moonbeam-gold text-white dark:text-celestial-blue font-bold py-3 px-4 rounded-lg hover:bg-amber-600 dark:hover:bg-amber-300 transition-colors duration-300 shadow-lg shadow-sunbeam-gold/30 dark:shadow-moonbeam-gold/20 disabled:bg-cloud-gray/50 dark:disabled:bg-starlight-silver/20 disabled:text-gray-500 dark:disabled:text-starlight-silver/50 disabled:cursor-not-allowed disabled:shadow-none"
         >
           Receive My Reading
         </button>
       </form>
-  );
+);
+
+export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscription, error }) => {
+  const [name, setName] = useState('');
+  const [mood, setMood] = useState('');
+  const [moonPhase, setMoonPhase] = useState<MoonPhase>(MoonPhase.FULL_MOON);
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (mood) {
+      onStart(name, mood, moonPhase);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 text-center">
@@ -100,7 +110,16 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscri
             </div>
         )}
 
-        <ReadingForm />
+        <ReadingForm 
+            name={name}
+            setName={setName}
+            mood={mood}
+            setMood={setMood}
+            moonPhase={moonPhase}
+            setMoonPhase={setMoonPhase}
+            handleSubmit={handleSubmit}
+            disabled={!mood}
+        />
 
          <div className="mt-6 text-center">
             <button onClick={onManageSubscription} className="inline-flex items-center text-xs text-deep-sapphire/60 dark:text-starlight-silver/60 hover:text-sunbeam-gold dark:hover:text-moonbeam-gold transition-colors">

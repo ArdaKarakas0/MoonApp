@@ -1,3 +1,6 @@
+// FIX: Refactor to use the @google/genai SDK for API calls, following best practices.
+import { GoogleGenAI, Type } from '@google/genai';
+
 // Types copied from `types.ts` to make this function self-contained
 enum MoonPhase {
     NEW_MOON = "New Moon",
@@ -63,12 +66,6 @@ interface VercelResponse {
     setHeader: (key: string, value: string) => void;
 }
 
-// Re-implement the Type enum as it's not available in the serverless environment from the SDK
-const Type = {
-    OBJECT: 'OBJECT',
-    STRING: 'STRING',
-};
-
 const weeklyReportSchema = {
     type: Type.OBJECT,
     properties: {
@@ -112,17 +109,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(500).json({ error: 'Configuration Error: API_KEY is not set on the server.' });
     }
 
-    const { userName, history } = req.body;
+    try {
+        const { userName, history } = req.body;
 
-    const sanitizedHistory = history.map(h => ({
-        date: h.date,
-        mood: h.userInputs.mood,
-        lunarMessage: 'lunarMessage' in h.reading ? h.reading.lunarMessage : undefined,
-        deepDiveMessage: 'deepDiveMessage' in h.reading ? h.reading.deepDiveMessage : undefined,
-        lunarSymbol: 'lunarSymbol' in h.reading ? h.reading.lunarSymbol.name : undefined,
-    }));
+        const sanitizedHistory = history.map(h => ({
+            date: h.date,
+            mood: h.userInputs.mood,
+            lunarMessage: 'lunarMessage' in h.reading ? h.reading.lunarMessage : undefined,
+            deepDiveMessage: 'deepDiveMessage' in h.reading ? h.reading.deepDiveMessage : undefined,
+            lunarSymbol: 'lunarSymbol' in h.reading ? h.reading.lunarSymbol.name : undefined,
+        }));
 
-    const prompt = `
+        const prompt = `
 You are MoonPath, a mystical, poetic, and modern spiritual guide.
 Your task is to analyze a user's recent reading history to generate a "Weekly Lunar Evolution" report.
 The report should be a cohesive, poetic summary of their emotional journey and recurring themes.
@@ -130,44 +128,23 @@ Synthesize the provided data; do not simply list the inputs.
 
 - User Name: "${userName || 'the seeker'}"
 - User's Recent History (JSON): ${JSON.stringify(sanitizedHistory, null, 2)}
-    `;
+        `;
 
-    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        // FIX: Use the @google/genai SDK instead of a manual fetch call.
+        const ai = new GoogleGenAI({ apiKey });
 
-    try {
-        const geminiResponse = await fetch(GEMINI_API_URL, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: prompt }]
-                }],
-                generationConfig: {
-                    responseMimeType: "application/json",
-                    responseSchema: weeklyReportSchema,
-                }
-            })
+        const geminiResponse = await ai.models.generateContent({
+            model: "gemini-2.5-flash",
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: weeklyReportSchema,
+            }
         });
 
-        if (!geminiResponse.ok) {
-            const errorBody = await geminiResponse.text();
-            console.error(`Error from Gemini API: Status ${geminiResponse.status}`, errorBody);
-            try {
-                const errorJson = JSON.parse(errorBody);
-                const errorMessage = errorJson.error?.message || "The moon's currents are unclear right now.";
-                return res.status(geminiResponse.status).json({ error: errorMessage });
-            } catch (e) {
-                return res.status(geminiResponse.status).json({ error: "The moon's currents are unclear right now. A weekly reflection is not yet available." });
-            }
-        }
-
-        const geminiData = await geminiResponse.json();
-
-        const jsonText = geminiData.candidates?.[0]?.content?.parts[0]?.text;
+        const jsonText = geminiResponse.text;
         if (!jsonText) {
-            console.error('Could not extract JSON text from Gemini response:', JSON.stringify(geminiData));
+            console.error('Could not extract JSON text from Gemini response:', JSON.stringify(geminiResponse));
             return res.status(500).json({ error: "Received an invalid format from the moon's weekly reflection." });
         }
 
@@ -177,6 +154,7 @@ Synthesize the provided data; do not simply list the inputs.
 
     } catch (error) {
         console.error("Error generating weekly report in serverless function:", error);
-        res.status(500).json({ error: "The moon's currents are unclear right now. A weekly reflection is not yet available." });
+        const errorMessage = error instanceof Error ? error.message : "The moon's currents are unclear right now. A weekly reflection is not yet available.";
+        res.status(500).json({ error: errorMessage });
     }
 }

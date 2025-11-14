@@ -25,7 +25,7 @@ const availablePlans: SubscriptionPlan[] = [
     },
     {
         name: Plan.PLUS,
-        price: "$2.99 / month",
+        price: "$0",
         tagline: "Clearer Lunar Insights",
         recommended: true,
         features: [
@@ -37,7 +37,7 @@ const availablePlans: SubscriptionPlan[] = [
     },
     {
         name: Plan.PREMIUM,
-        price: "$4.99 / month",
+        price: "$0",
         tagline: "Deeper Lunar Currents",
         features: [
             "Everything in Plus, plus:",
