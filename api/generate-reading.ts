@@ -145,7 +145,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const schema = isSpecialReading ? specialReadingSchema : dailyReadingSchema;
     const prompt = createPrompt(userName, userMood, moonPhase, currentPlan, isSpecialReading);
     
-    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     try {
         const geminiResponse = await fetch(GEMINI_API_URL, {

@@ -132,7 +132,7 @@ Synthesize the provided data; do not simply list the inputs.
 - User's Recent History (JSON): ${JSON.stringify(sanitizedHistory, null, 2)}
     `;
 
-    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const GEMINI_API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     try {
         const geminiResponse = await fetch(GEMINI_API_URL, {
