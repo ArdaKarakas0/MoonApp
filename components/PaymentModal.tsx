@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { SubscriptionPlan } from '../types';
 import { CreditCardIcon } from './icons/CreditCardIcon';
@@ -45,7 +44,6 @@ const formatExpiryDate = (value: string) => {
     return cleanValue;
 }
 
-// FIX: Define the props interface for the PaymentModal component.
 interface PaymentModalProps {
   plan: SubscriptionPlan;
   onClose: () => void;

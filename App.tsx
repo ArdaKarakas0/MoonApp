@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Onboarding } from './components/Onboarding';
 import { Loading } from './components/Loading';
@@ -70,21 +69,22 @@ const App: React.FC = () => {
   const [theme, setTheme] = useState<Theme>(() => (localStorage.getItem(APP_THEME_KEY) as Theme) || 'dark');
 
   useEffect(() => {
-    // Apply theme class to HTML element
     if (theme === 'dark') {
       document.documentElement.classList.add('dark');
     } else {
       document.documentElement.classList.remove('dark');
     }
-    localStorage.setItem(APP_THEME_KEY, theme);
+    try {
+        localStorage.setItem(APP_THEME_KEY, theme);
+    } catch (e) {
+        console.error("Failed to save theme to localStorage", e);
+    }
   }, [theme]);
 
   useEffect(() => {
-    // Load subscription plan from secure storage
     const storedPlan = secureGetItem<Plan>(APP_PLAN_KEY, Plan.FREE);
     setCurrentPlan(storedPlan);
 
-    // Load reading history from standard storage
     try {
         const storedHistory = localStorage.getItem(APP_HISTORY_KEY);
         if (storedHistory) {
@@ -102,12 +102,11 @@ const App: React.FC = () => {
   const handleGetReading = useCallback(async (name: string, mood: string, moonPhase: MoonPhase) => {
     setIsLoading(true);
     setError(null);
-    setScreen('loading');
     
     try {
       const readingData = await generateReading(name, mood, moonPhase, currentPlan);
       const newHistoricReading: HistoricReading = {
-          id: new Date().toISOString() + Math.random(), // Add random number for more uniqueness
+          id: new Date().toISOString() + Math.random(),
           date: new Date().toISOString(),
           userInputs: { name, mood, moonPhase },
           reading: readingData,
@@ -123,6 +122,7 @@ const App: React.FC = () => {
               localStorage.setItem(APP_HISTORY_KEY, JSON.stringify(newHistory));
           } catch (e) {
               console.error("Failed to save reading history to localStorage", e);
+              setToastMessage("Could not save reading to history. Storage may be full.");
           }
           return newHistory;
       });
@@ -145,14 +145,14 @@ const App: React.FC = () => {
   };
 
   const handleManageSubscription = () => {
-      setPreviousScreen(screen === 'loading' ? 'onboarding' : screen);
+      setPreviousScreen(screen);
       setScreen('subscription');
   };
 
   const handleSelectPlan = (plan: Plan) => {
       const oldPlan = currentPlan;
       setCurrentPlan(plan);
-      secureSetItem(APP_PLAN_KEY, plan); // Save to secure storage
+      secureSetItem(APP_PLAN_KEY, plan);
       setScreen(previousScreen);
       if (plan !== oldPlan) {
           if (plan === Plan.FREE) {
@@ -191,8 +191,8 @@ const App: React.FC = () => {
             localStorage.setItem(APP_HISTORY_KEY, JSON.stringify(newHistory));
         } catch (e) {
             console.error("Failed to save updated journal to localStorage", e);
+            setToastMessage("Could not save journal entry. Storage may be full.");
         }
-        // Also update the currently viewed reading if it's the one being edited
         if (currentReading?.id === readingId) {
             setCurrentReading(prev => prev ? { ...prev, journalEntry: journalText } : null);
         }
@@ -203,7 +203,6 @@ const App: React.FC = () => {
   const handleGenerateWeeklyReport = useCallback(async () => {
     setIsLoading(true);
     setError(null);
-    setScreen('loading');
     
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -241,15 +240,6 @@ const App: React.FC = () => {
     switch (screen) {
       case 'onboarding':
         return <Onboarding onStart={handleGetReading} error={error} onManageSubscription={handleManageSubscription} />;
-      case 'loading':
-        return (
-            <>
-                {/* Render the underlying screen for context during loading */}
-                {previousScreen === 'onboarding' && <Onboarding onStart={handleGetReading} onManageSubscription={handleManageSubscription}/>}
-                {previousScreen === 'history' && <History history={readingHistory} currentPlan={currentPlan} onSelectReading={handleSelectHistoricReading} onClose={handleReset} onUpgrade={handleManageSubscription} onGenerateReport={handleGenerateWeeklyReport} />}
-                <Loading />
-            </>
-        );
       case 'reading':
         return currentReading ? (
             <DailyReadingDisplay 
@@ -301,8 +291,9 @@ const App: React.FC = () => {
       <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
       <div className="relative z-10">
         {renderScreen()}
-        {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
       </div>
+      {isLoading && <Loading />}
+      {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
     </main>
   );
 };

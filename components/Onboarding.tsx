@@ -1,7 +1,7 @@
-
 import React, { useState } from 'react';
 import { MoonPhase } from '../types';
 import { CogIcon } from './icons/CogIcon';
+import { ChevronDownIcon } from './icons/ChevronDownIcon';
 
 interface OnboardingProps {
   onStart: (name: string, mood: string, moonPhase: MoonPhase) => void;
@@ -71,16 +71,21 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscri
           
           <div>
               <label htmlFor="moon-phase" className="block text-sm font-medium text-deep-sapphire/90 dark:text-starlight-silver/90 mb-2">Select the current moon phase:</label>
-              <select
-                  id="moon-phase"
-                  value={moonPhase}
-                  onChange={(e) => setMoonPhase(e.target.value as MoonPhase)}
-                  className="w-full bg-white/50 dark:bg-celestial-blue/50 border border-cloud-gray/40 dark:border-starlight-silver/20 rounded-lg px-4 py-2 text-deep-sapphire dark:text-white focus:ring-2 focus:ring-sunbeam-gold dark:focus:ring-moonbeam-gold focus:border-sunbeam-gold dark:focus:border-moonbeam-gold focus:outline-none transition-shadow appearance-none"
-              >
-                  {Object.values(MoonPhase).map(phase => (
-                      <option key={phase} value={phase} className="bg-sky-blue dark:bg-midnight-purple">{phase}</option>
-                  ))}
-              </select>
+              <div className="relative">
+                <select
+                    id="moon-phase"
+                    value={moonPhase}
+                    onChange={(e) => setMoonPhase(e.target.value as MoonPhase)}
+                    className="w-full bg-white/50 dark:bg-celestial-blue/50 border border-cloud-gray/40 dark:border-starlight-silver/20 rounded-lg px-4 py-2 pr-10 text-deep-sapphire dark:text-white focus:ring-2 focus:ring-sunbeam-gold dark:focus:ring-moonbeam-gold focus:border-sunbeam-gold dark:focus:border-moonbeam-gold focus:outline-none transition-shadow appearance-none"
+                >
+                    {Object.values(MoonPhase).map(phase => (
+                        <option key={phase} value={phase} className="bg-sky-blue dark:bg-midnight-purple">{phase}</option>
+                    ))}
+                </select>
+                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-deep-sapphire/70 dark:text-starlight-silver/70">
+                    <ChevronDownIcon className="w-5 h-5" />
+                </div>
+              </div>
           </div>
 
           <button
