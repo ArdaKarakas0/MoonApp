@@ -4,6 +4,7 @@ import { HistoryIcon } from './icons/HistoryIcon';
 import { MoonIcon } from './icons/MoonIcon';
 import { Card } from './Card';
 import { BookOpenIcon } from './icons/BookOpenIcon';
+import { GiftIcon } from './icons/GiftIcon';
 
 interface DailyReadingProps {
   reading: HistoricReading;
@@ -104,27 +105,25 @@ const SpecialReadingContent: React.FC<{ content: SpecialReading }> = ({ content 
 const SponsoredProductDisplay: React.FC<{ product: SponsoredProduct }> = ({ product }) => {
     return (
         <div className="bg-white/50 dark:bg-celestial-blue/50 p-4 rounded-lg flex flex-col items-center text-center border border-cloud-gray/20 dark:border-starlight-silver/10 h-full">
-            <img 
-                src={product.imageUrl} 
-                alt={product.name} 
-                className="w-24 h-24 object-cover rounded-md mb-3 bg-gradient-to-br from-sky-blue to-dawn-pink dark:from-celestial-blue dark:to-midnight-purple shadow-inner" 
-            />
-            <h4 className="font-semibold font-serif text-deep-sapphire dark:text-white">{product.name}</h4>
-            <p className="text-sm text-deep-sapphire/80 dark:text-starlight-silver/80 mt-1 mb-3 flex-grow">{product.description}</p>
+            <div className="p-4 bg-sunbeam-gold/20 dark:bg-moonbeam-gold/20 rounded-full mb-4 shadow-inner">
+                <GiftIcon className="w-10 h-10 text-sunbeam-gold dark:text-moonbeam-gold" />
+            </div>
+            <h4 className="font-semibold font-serif text-deep-sapphire dark:text-white">{product.marketingName}</h4>
+            <p className="text-sm text-deep-sapphire/80 dark:text-starlight-silver/80 mt-1 mb-3 flex-grow">{product.marketingDescription}</p>
             <a 
                 href={product.url} 
                 target="_blank" 
                 rel="noopener noreferrer" 
                 className="text-xs font-bold bg-sunbeam-gold/80 dark:bg-moonbeam-gold/80 text-white dark:text-celestial-blue py-2 px-4 rounded-full hover:bg-amber-500 dark:hover:bg-amber-300 transition-colors duration-300 mt-auto"
             >
-                Learn More
+                Unveil the Mystery
             </a>
         </div>
     );
 };
 
 const SponsoredProducts: React.FC<{ products: SponsoredProduct[] }> = ({ products }) => (
-    <Card title="Cosmic Offerings">
+    <Card title="Cosmic Surprises">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
             {products.map((product, index) => (
                 <SponsoredProductDisplay key={index} product={product} />

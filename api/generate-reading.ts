@@ -97,12 +97,20 @@ const allSponsoredProducts = [
 const sponsoredProductSchema = {
     type: Type.OBJECT,
     properties: {
-        name: { type: Type.STRING },
-        description: { type: Type.STRING },
-        url: { type: Type.STRING },
-        imageUrl: { type: Type.STRING },
+        marketingName: { 
+            type: Type.STRING,
+            description: "A mystical, intriguing name for the product, not its real name." 
+        },
+        marketingDescription: { 
+            type: Type.STRING,
+            description: "A curious description hinting at the product's purpose without revealing it."
+        },
+        url: { 
+            type: Type.STRING,
+            description: "The original URL of the selected product."
+        },
     },
-    required: ['name', 'description', 'url', 'imageUrl'],
+    required: ['marketingName', 'marketingDescription', 'url'],
 };
 
 const dailyReadingSchema = {
@@ -128,7 +136,7 @@ const dailyReadingSchema = {
     sponsoredProducts: {
         type: Type.ARRAY,
         items: sponsoredProductSchema,
-        description: "An array of exactly 3 relevant sponsored products selected from the provided list."
+        description: "An array of exactly 3 relevant sponsored products, each with a creative marketing name and description, selected from the provided list."
     },
   },
   required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'lunarMessage', 'lunarWarning', 'opportunityWindow', 'lunarSymbol', 'closingLine', 'sponsoredProducts' ],
@@ -162,7 +170,7 @@ const specialReadingSchema = {
         sponsoredProducts: {
             type: Type.ARRAY,
             items: sponsoredProductSchema,
-            description: "An array of exactly 3 relevant sponsored products selected from the provided list."
+            description: "An array of exactly 3 relevant sponsored products, each with a creative marketing name and description, selected from the provided list."
         },
     },
     required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'specialTheme', 'deepDiveMessage', 'ritualSuggestion', 'oracleInsight', 'closingLine', 'sponsoredProducts' ],
@@ -175,7 +183,10 @@ Your tone is calm, gentle, and psychologically aware. Avoid clichés, horoscopes
 `;
 
     const productInstruction = `
-From the list of available products below, select exactly 3 that are most thematically relevant to the reading you generate and include them in the 'sponsoredProducts' field of your response.
+From the list of available products below, select exactly 3 that are most thematically relevant to the reading you generate.
+For each selected product, you MUST NOT use its real name or description. Instead, invent a new, mystical, and intriguing 'marketingName' and 'marketingDescription' that hints at the product's purpose without revealing what it is, creating a sense of a 'surprise gift'. The goal is to make the user curious.
+For example, for a tarot deck, you could generate a marketingName like 'Whispers of Destiny' and a description like 'Unlock the secrets coded in the stars and embrace the path meant for you.'
+Ensure you use the original 'url' from the selected product in your response.
 
 AVAILABLE PRODUCTS:
 ${JSON.stringify(allSponsoredProducts, null, 2)}

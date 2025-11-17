@@ -27,10 +27,9 @@ export interface SubscriptionPlan {
 export type Screen = 'onboarding' | 'loading' | 'reading' | 'subscription' | 'history' | 'weekly_report' | 'settings';
 
 export interface SponsoredProduct {
-  name: string;
-  description: string;
+  marketingName: string;
+  marketingDescription: string;
   url: string;
-  imageUrl: string;
 }
 
 // This is the standard content structure returned by the AI model
