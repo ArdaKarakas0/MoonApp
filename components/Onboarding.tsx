@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { MoonPhase } from '../types';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
+import { playSound, SoundEffect } from '../utils/audioService';
 
 interface OnboardingProps {
   onStart: (name: string, mood: string, moonPhase: MoonPhase) => void;
@@ -41,7 +42,10 @@ const ReadingForm: React.FC<ReadingFormProps> = React.memo(({ name, setName, moo
             <button
               key={m}
               type="button"
-              onClick={() => setMood(m)}
+              onClick={() => {
+                  setMood(m);
+                  playSound(SoundEffect.CLICK, 0.4);
+              }}
               className={`px-4 py-2 rounded-lg text-sm transition-all duration-300 border transform ${
                 mood === m 
                 ? 'bg-sunbeam-gold dark:bg-moonbeam-gold text-white dark:text-celestial-blue border-sunbeam-gold dark:border-moonbeam-gold font-semibold shadow-lg shadow-sunbeam-gold/30 dark:shadow-glow-gold active:scale-95' 
@@ -93,6 +97,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscri
   const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (mood) {
+      playSound(SoundEffect.CLICK, 0.7);
       onStart(name, mood, moonPhase);
     }
   }, [onStart, name, mood, moonPhase]);

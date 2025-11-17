@@ -5,6 +5,7 @@ import { MoonIcon } from './icons/MoonIcon';
 import { Card } from './Card';
 import { BookOpenIcon } from './icons/BookOpenIcon';
 import { GiftIcon } from './icons/GiftIcon';
+import { playSound, SoundEffect } from '../utils/audioService';
 
 interface DailyReadingProps {
   reading: HistoricReading;
@@ -28,6 +29,7 @@ const JournalCard: React.FC<{ reading: HistoricReading; onUpdateJournal: (id: st
     const handleSaveJournal = () => {
         setSaveStatus('saving');
         onUpdateJournal(reading.id, journalText);
+        playSound(SoundEffect.SAVE, 0.6);
         setTimeout(() => {
             setSaveStatus('saved');
             setTimeout(() => setSaveStatus('idle'), 2000);
@@ -144,47 +146,4 @@ export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, curr
           {(isViewingHistory || reading.date) && (
             <p className="text-sunbeam-gold/80 dark:text-moonbeam-gold/80 mb-2 font-serif">{new Date(reading.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
           )}
-          <h1 className="text-4xl sm:text-5xl font-serif font-bold text-deep-sapphire dark:text-white">{readingContent.moonPhaseHeading.title}</h1>
-          <p className="mt-2 text-deep-sapphire/80 dark:text-starlight-silver/80">{readingContent.moonPhaseHeading.description}</p>
-        </header>
-
-        <div className="text-center bg-white/40 dark:bg-celestial-blue/40 py-4 px-6 rounded-lg border border-cloud-gray/30 dark:border-starlight-silver/10">
-            <p className="text-sm text-deep-sapphire/70 dark:text-starlight-silver/70">Your Lunar Alignment</p>
-            <h2 className="text-2xl font-serif font-semibold text-sunbeam-gold dark:text-moonbeam-gold tracking-wide">{readingContent.lunarAlignment}</h2>
-        </div>
-        
-        {readingContent.readingType === 'special' 
-            ? <SpecialReadingContent content={readingContent} /> 
-            : <DailyReadingContent content={readingContent} />
-        }
-
-        {sponsoredProducts && sponsoredProducts.length > 0 && (
-            <SponsoredProducts products={sponsoredProducts} />
-        )}
-        
-        <JournalCard reading={reading} onUpdateJournal={onUpdateJournal} />
-
-        <footer className="text-center italic text-sunbeam-gold/80 dark:text-moonbeam-gold/80 pt-4">
-            <p>"{readingContent.closingLine}"</p>
-        </footer>
-
-        <div className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
-            <button
-                onClick={isViewingHistory ? onBackToHistory : onReset}
-                className="bg-sunbeam-gold dark:bg-moonbeam-gold text-white dark:text-celestial-blue font-bold py-2 px-6 rounded-lg hover:bg-amber-600 dark:hover:bg-amber-300 transition-colors duration-300 shadow-lg shadow-sunbeam-gold/30 dark:shadow-moonbeam-gold/20 w-full sm:w-auto"
-            >
-                {isViewingHistory ? 'Back to History' : 'Seek a New Reading'}
-            </button>
-            <button
-                onClick={onViewHistory}
-                disabled={!isPremiumFeatureEnabled}
-                className="inline-flex items-center justify-center bg-black/5 dark:bg-starlight-silver/10 text-deep-sapphire dark:text-starlight-silver border border-cloud-gray/40 dark:border-starlight-silver/20 font-semibold py-2 px-6 rounded-lg hover:bg-black/10 dark:hover:bg-starlight-silver/20 transition-colors duration-300 w-full sm:w-auto disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-                <HistoryIcon className="w-5 h-5 mr-2" />
-                View History
-            </button>
-        </div>
-      </div>
-    </div>
-  );
-};
+          <h1 className="text-4xl sm:text-5xl font-serif font-bold text

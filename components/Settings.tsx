@@ -1,10 +1,13 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { CogIcon } from './icons/CogIcon';
 import { InfoIcon } from './icons/InfoIcon';
 import { LanguageIcon } from './icons/LanguageIcon';
 import { TrashIcon } from './icons/TrashIcon';
+import { getIsMuted, playSound, SoundEffect, toggleMute } from '../utils/audioService';
+import { SpeakerWaveIcon } from './icons/SpeakerWaveIcon';
+import { SpeakerXMarkIcon } from './icons/SpeakerXMarkIcon';
 
 interface SettingsProps {
     onClose: () => void;
@@ -22,7 +25,28 @@ const SettingsRow: React.FC<{ icon: React.ReactNode; label: string; children: Re
     </div>
 );
 
+const SoundToggle: React.FC<{ isMuted: boolean, onToggle: () => void }> = ({ isMuted, onToggle }) => {
+    return (
+        <button
+            onClick={onToggle}
+            aria-label={isMuted ? "Unmute sound effects" : "Mute sound effects"}
+            className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-sunbeam-gold dark:focus:ring-offset-midnight-purple dark:focus:ring-moonbeam-gold ${isMuted ? 'bg-cloud-gray/70 dark:bg-starlight-silver/20' : 'bg-sunbeam-gold dark:bg-moonbeam-gold'}`}
+        >
+            <span
+                className={`inline-block w-4 h-4 transform bg-white rounded-full transition-transform duration-300 ${isMuted ? 'translate-x-1' : 'translate-x-6'}`}
+            />
+        </button>
+    );
+};
+
 export const Settings: React.FC<SettingsProps> = ({ onClose, onManageSubscription, onClearHistory }) => {
+    const [isMuted, setIsMuted] = useState(getIsMuted);
+
+    const handleToggleMute = () => {
+        playSound(SoundEffect.CLICK, 0.5);
+        setIsMuted(toggleMute());
+    };
+
     return (
         <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 animate-fade-in">
             <div className="w-full max-w-md mx-auto">
@@ -48,6 +72,9 @@ export const Settings: React.FC<SettingsProps> = ({ onClose, onManageSubscriptio
                                 <option>Español (soon)</option>
                                 <option>Français (soon)</option>
                             </select>
+                        </SettingsRow>
+                        <SettingsRow icon={isMuted ? <SpeakerXMarkIcon /> : <SpeakerWaveIcon />} label="Sound Effects">
+                            <SoundToggle isMuted={isMuted} onToggle={handleToggleMute} />
                         </SettingsRow>
                     </div>
 

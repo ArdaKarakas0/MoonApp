@@ -14,6 +14,7 @@ import { Settings } from './components/Settings';
 import { ConfirmationModal } from './components/ConfirmationModal';
 import { CogIcon } from './components/icons/CogIcon';
 import { InitialLoading } from './components/InitialLoading';
+import { initializeAudio, playSound, SoundEffect } from './utils/audioService';
 
 const availablePlans: SubscriptionPlan[] = [
     {
@@ -89,6 +90,17 @@ const App: React.FC = () => {
   const [isClearHistoryModalOpen, setIsClearHistoryModalOpen] = useState(false);
   const [settingsOrigin, setSettingsOrigin] = useState<Screen>('onboarding');
 
+  // Initialize audio service once on mount
+  useEffect(() => {
+    initializeAudio();
+  }, []);
+
+  useEffect(() => {
+    if (toastMessage) {
+        playSound(SoundEffect.CHIME, 0.4);
+    }
+  }, [toastMessage]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
         setIsInitialLoading(false);
@@ -157,7 +169,8 @@ const App: React.FC = () => {
           }
           return newHistory;
       });
-
+      
+      playSound(SoundEffect.REVEAL, 0.6);
       setScreen('reading');
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -168,6 +181,7 @@ const App: React.FC = () => {
   }, [currentPlan]);
   
   const handleReset = () => {
+      playSound(SoundEffect.SWOOSH_BACK, 0.5);
       setScreen('onboarding');
       setCurrentReading(null);
       setError(null);
@@ -175,6 +189,7 @@ const App: React.FC = () => {
   };
 
   const handleManageSubscription = () => {
+      playSound(SoundEffect.SWOOSH_FORWARD, 0.5);
       setPreviousScreen(screen);
       setScreen('subscription');
   };
@@ -183,6 +198,7 @@ const App: React.FC = () => {
       const oldPlan = currentPlan;
       setCurrentPlan(plan);
       secureSetItem(APP_PLAN_KEY, plan);
+      playSound(SoundEffect.SWOOSH_BACK, 0.5);
       setScreen(previousScreen);
       if (plan !== oldPlan) {
           if (plan === Plan.FREE) {
@@ -194,21 +210,25 @@ const App: React.FC = () => {
   };
   
   const handleCloseSubscription = () => {
+      playSound(SoundEffect.SWOOSH_BACK, 0.5);
       setScreen(previousScreen);
   }
 
   const handleViewHistory = () => {
+    playSound(SoundEffect.SWOOSH_FORWARD, 0.5);
     setScreen('history');
   }
 
   const handleSelectHistoricReading = (reading: HistoricReading) => {
     setCurrentReading(reading);
     setIsViewingFromHistory(true);
+    playSound(SoundEffect.SWOOSH_FORWARD, 0.4);
     setScreen('reading');
   }
 
   const handleBackToHistory = () => {
     setIsViewingFromHistory(true);
+    playSound(SoundEffect.SWOOSH_BACK, 0.5);
     setScreen('history');
   }
 
@@ -251,6 +271,7 @@ const App: React.FC = () => {
     try {
         const reportData = await generateWeeklyReport(mostRecentName, recentHistory);
         setWeeklyReport(reportData);
+        playSound(SoundEffect.REVEAL, 0.6);
         setScreen('weekly_report');
     } catch (err) {
         const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
@@ -263,15 +284,18 @@ const App: React.FC = () => {
 
   const handleBackToHistoryFromReport = () => {
     setWeeklyReport(null);
+    playSound(SoundEffect.SWOOSH_BACK, 0.5);
     setScreen('history');
   }
 
   const handleOpenSettings = () => {
+    playSound(SoundEffect.SWOOSH_FORWARD, 0.5);
     setSettingsOrigin(screen);
     setScreen('settings');
   };
 
   const handleCloseSettings = () => {
+    playSound(SoundEffect.SWOOSH_BACK, 0.5);
     setScreen(settingsOrigin);
   };
   
