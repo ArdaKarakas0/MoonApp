@@ -1,5 +1,5 @@
 
-import React, from 'react';
+import React from 'react';
 import { ChevronRightIcon } from './icons/ChevronRightIcon';
 import { CogIcon } from './icons/CogIcon';
 import { InfoIcon } from './icons/InfoIcon';

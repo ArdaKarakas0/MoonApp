@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { MoonPhase } from '../types';
 import { ChevronDownIcon } from './icons/ChevronDownIcon';
 
@@ -20,7 +20,7 @@ interface ReadingFormProps {
     onSubmit: (e: React.FormEvent) => void;
 }
 
-const ReadingForm: React.FC<ReadingFormProps> = ({ name, setName, mood, setMood, moonPhase, setMoonPhase, onSubmit }) => (
+const ReadingForm: React.FC<ReadingFormProps> = React.memo(({ name, setName, mood, setMood, moonPhase, setMoonPhase, onSubmit }) => (
     <form onSubmit={onSubmit} className="space-y-6">
       <div>
         <label htmlFor="name" className="block text-sm font-medium text-deep-sapphire/90 dark:text-starlight-silver/90 mb-2">What name shall the moon whisper?</label>
@@ -81,7 +81,8 @@ const ReadingForm: React.FC<ReadingFormProps> = ({ name, setName, mood, setMood,
         Receive My Reading
       </button>
     </form>
-);
+));
+ReadingForm.displayName = 'ReadingForm';
 
 
 export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscription, error }) => {
@@ -89,12 +90,12 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscri
   const [mood, setMood] = useState('');
   const [moonPhase, setMoonPhase] = useState<MoonPhase>(MoonPhase.FULL_MOON);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
     if (mood) {
       onStart(name, mood, moonPhase);
     }
-  };
+  }, [onStart, name, mood, moonPhase]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 text-center">
