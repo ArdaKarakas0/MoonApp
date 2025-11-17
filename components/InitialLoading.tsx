@@ -1,7 +1,17 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CrescentMoonIcon } from './icons/CrescentMoonIcon';
+import { playBackgroundMusic, stopBackgroundMusic, MusicTrack } from '../utils/audioService';
 
 export const InitialLoading: React.FC = () => {
+    useEffect(() => {
+        playBackgroundMusic(MusicTrack.SPIRITUAL_CHILL, 0.2, 2.8); // Fade in over the duration of the animation
+        // The component unmounts when the main app loads, so a cleanup is good practice,
+        // though the app might transition before the fade-out completes.
+        return () => {
+          stopBackgroundMusic(0.5); // Quick fade out
+        };
+    }, []);
+
   return (
     <div className="fixed inset-0 bg-gradient-to-br from-sky-blue to-dawn-pink dark:from-celestial-blue dark:to-midnight-purple flex flex-col items-center justify-center z-50">
       <div className="animate-subtle-pulse">

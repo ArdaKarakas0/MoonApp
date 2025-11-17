@@ -5,6 +5,11 @@ let audioContext: AudioContext | null = null;
 let isMuted = false;
 let isInitialized = false;
 
+// --- State for Background Music ---
+let backgroundGainNode: GainNode | null = null;
+let backgroundSource1: OscillatorNode | null = null;
+let backgroundSource2: OscillatorNode | null = null;
+
 /**
  * Defines the types of synthetic sound effects used in the application.
  */
@@ -16,6 +21,14 @@ export enum SoundEffect {
     CLICK,
     CHIME,
 }
+
+/**
+ * Defines the types of background music tracks.
+ */
+export enum MusicTrack {
+    SPIRITUAL_CHILL,
+}
+
 
 // We can call this early in the app lifecycle, e.g., in App.tsx
 export const initializeAudio = () => {
@@ -46,6 +59,88 @@ export const initializeAudio = () => {
         console.error("Failed to initialize audio service:", e);
     }
 };
+
+/**
+ * Generates and plays continuous, looping background music.
+ */
+export const playBackgroundMusic = (track: MusicTrack, volume: number = 0.15, fadeDuration: number = 2.0) => {
+    if (getIsMuted() || !audioContext || backgroundSource1) {
+        // Don't play if muted, not initialized, or already playing
+        return;
+    }
+
+    if (audioContext.state === 'suspended') {
+        audioContext.resume();
+    }
+    
+    const now = audioContext.currentTime;
+    backgroundGainNode = audioContext.createGain();
+    backgroundGainNode.connect(audioContext.destination);
+    backgroundGainNode.gain.setValueAtTime(0, now); // Start silent
+
+    try {
+        switch (track) {
+            case MusicTrack.SPIRITUAL_CHILL: {
+                // Low drone
+                backgroundSource1 = audioContext.createOscillator();
+                backgroundSource1.type = 'sine';
+                backgroundSource1.frequency.setValueAtTime(82.41, now); // E2
+
+                // Slightly detuned oscillator for a gentle "beating" effect
+                backgroundSource2 = audioContext.createOscillator();
+                backgroundSource2.type = 'sine';
+                backgroundSource2.frequency.setValueAtTime(82.51, now); // Slightly higher than E2
+                
+                backgroundSource1.connect(backgroundGainNode);
+                backgroundSource2.connect(backgroundGainNode);
+
+                backgroundSource1.start(now);
+                backgroundSource2.start(now);
+                break;
+            }
+        }
+        
+        // Fade in
+        backgroundGainNode.gain.linearRampToValueAtTime(volume, now + fadeDuration);
+
+    } catch (e) {
+        console.error("Error playing background music:", e);
+        // Clean up on error
+        stopBackgroundMusic(0);
+    }
+};
+
+/**
+ * Stops the currently playing background music with a fade-out.
+ */
+export const stopBackgroundMusic = (fadeDuration: number = 1.5) => {
+    if (!audioContext || !backgroundGainNode || !backgroundSource1) {
+        return;
+    }
+    
+    const now = audioContext.currentTime;
+    
+    // Fade out
+    backgroundGainNode.gain.cancelScheduledValues(now);
+    backgroundGainNode.gain.setValueAtTime(backgroundGainNode.gain.value, now);
+    backgroundGainNode.gain.linearRampToValueAtTime(0, now + fadeDuration);
+    
+    // Schedule stop and cleanup
+    const stopTime = now + fadeDuration;
+    backgroundSource1.stop(stopTime);
+    backgroundSource2?.stop(stopTime);
+    
+    // Cleanup references after stopping
+    setTimeout(() => {
+        backgroundSource1?.disconnect();
+        backgroundSource2?.disconnect();
+        backgroundGainNode?.disconnect();
+        backgroundSource1 = null;
+        backgroundSource2 = null;
+        backgroundGainNode = null;
+    }, fadeDuration * 1000 + 100); // Add a small buffer
+};
+
 
 /**
  * Generates and plays a synthetic sound effect.
@@ -154,6 +249,10 @@ export const toggleMute = (): boolean => {
     try {
         if (typeof window !== 'undefined' && window.localStorage) {
             localStorage.setItem(AUDIO_MUTED_KEY, String(isMuted));
+        }
+        // If we just muted, stop any playing music.
+        if (isMuted) {
+            stopBackgroundMusic(0.1); // Quick fade out
         }
     } catch (e) {
         console.warn("Could not access localStorage to set audio muted state.");

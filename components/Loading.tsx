@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { playBackgroundMusic, stopBackgroundMusic, MusicTrack } from '../utils/audioService';
 
 // Generate stars with random properties for a more natural look
 const stars = Array.from({ length: 50 }, (_, i) => ({
@@ -14,6 +15,14 @@ const stars = Array.from({ length: 50 }, (_, i) => ({
 }));
 
 export const Loading: React.FC = () => {
+    useEffect(() => {
+        playBackgroundMusic(MusicTrack.SPIRITUAL_CHILL);
+        // Cleanup function to stop music when the component unmounts
+        return () => {
+          stopBackgroundMusic();
+        };
+    }, []); // Empty dependency array ensures this runs only on mount and unmount
+
   return (
     <div className="fixed inset-0 bg-sky-blue/50 dark:bg-celestial-blue/50 backdrop-blur-sm flex flex-col items-center justify-center z-50 transition-opacity duration-300 overflow-hidden">
         {/* Starfield Background */}
