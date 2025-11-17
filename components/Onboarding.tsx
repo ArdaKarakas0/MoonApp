@@ -99,7 +99,7 @@ export const Onboarding: React.FC<OnboardingProps> = ({ onStart, onManageSubscri
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 text-center">
-      <div className="w-full max-w-md mx-auto bg-white/50 dark:bg-midnight-purple/30 backdrop-blur-md rounded-2xl p-8 shadow-lg shadow-gray-400/30 dark:shadow-glow-white border border-cloud-gray/30 dark:border-starlight-silver/10">
+      <div className="w-full max-w-md mx-auto bg-white/50 dark:bg-midnight-purple/30 backdrop-blur-md rounded-2xl p-8 shadow-lg shadow-gray-400/30 dark:shadow-glow-white border border-cloud-gray/30 dark:border-starlight-silver/10 animate-fade-in-up">
         <h1 className="text-4xl sm:text-5xl font-serif font-bold text-deep-sapphire dark:text-white mb-2">Welcome to MoonPath</h1>
         <p className="text-deep-sapphire/80 dark:text-starlight-silver/80 mb-8">Your daily guidance, whispered by the moon.</p>
         

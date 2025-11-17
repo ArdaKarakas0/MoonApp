@@ -13,6 +13,7 @@ import { WeeklyReportDisplay } from './components/WeeklyReport';
 import { Settings } from './components/Settings';
 import { ConfirmationModal } from './components/ConfirmationModal';
 import { CogIcon } from './components/icons/CogIcon';
+import { InitialLoading } from './components/InitialLoading';
 
 const availablePlans: SubscriptionPlan[] = [
     {
@@ -73,6 +74,7 @@ const getInitialTheme = (): Theme => {
 
 
 const App: React.FC = () => {
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [screen, setScreen] = useState<Screen>('onboarding');
   const [previousScreen, setPreviousScreen] = useState<Screen>('onboarding');
   const [currentReading, setCurrentReading] = useState<HistoricReading | null>(null);
@@ -87,6 +89,13 @@ const App: React.FC = () => {
   const [isClearHistoryModalOpen, setIsClearHistoryModalOpen] = useState(false);
   const [settingsOrigin, setSettingsOrigin] = useState<Screen>('onboarding');
 
+  useEffect(() => {
+    const timer = setTimeout(() => {
+        setIsInitialLoading(false);
+    }, 2800);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -335,6 +344,10 @@ const App: React.FC = () => {
         return <Onboarding onStart={handleGetReading} error={error} onManageSubscription={handleManageSubscription} />;
     }
   };
+
+  if (isInitialLoading) {
+    return <InitialLoading />;
+  }
 
   const showSettingsButton = !['subscription', 'settings', 'loading'].includes(screen);
 

@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
   <head>
@@ -35,6 +34,51 @@
             boxShadow: {
               'glow-white': '0 0 15px rgba(255, 255, 255, 0.2)',
               'glow-gold': '0 0 20px rgba(253, 230, 138, 0.4)',
+            },
+            animation: {
+              'fade-in': 'fadeIn 0.5s ease-in-out',
+              twinkle: 'twinkle 1.5s ease-in-out infinite',
+              'moon-cycle': 'moonPhase 8s ease-in-out infinite',
+              'moon-glow': 'moonGlow 8s ease-in-out infinite',
+              'subtle-pulse': 'subtlePulse 2.5s ease-in-out infinite',
+              'fade-in-up': 'fadeInUp 1s ease-out forwards',
+            },
+            keyframes: {
+              fadeIn: {
+                '0%': { opacity: 0, transform: 'translateY(10px)' },
+                '100%': { opacity: 1, transform: 'translateY(0)' },
+              },
+              twinkle: {
+                '0%, 100%': { opacity: 0 },
+                '50%': { opacity: 1 },
+              },
+              moonPhase: {
+                '0%': { transform: 'translateX(100%)' },
+                '50%': { transform: 'translateX(-100%)' },
+                '100%': { transform: 'translateX(100%)' },
+              },
+              moonGlow: {
+                '0%': {
+                  boxShadow: '0 0 25px 5px rgba(253, 230, 138, 0.6), inset 0 0 5px rgba(255,255,255,0.5)',
+                  backgroundColor: '#fef3c7'
+                },
+                '50%': {
+                  boxShadow: '0 0 10px 0px rgba(253, 230, 138, 0.2), inset 0 0 5px rgba(0,0,0,0.2)',
+                  backgroundColor: '#fde68a'
+                },
+                '100%': {
+                  boxShadow: '0 0 25px 5px rgba(253, 230, 138, 0.6), inset 0 0 5px rgba(255,255,255,0.5)',
+                  backgroundColor: '#fef3c7'
+                },
+              },
+              subtlePulse: {
+                '0%, 100%': { transform: 'scale(1)', opacity: 0.9 },
+                '50%': { transform: 'scale(1.05)', opacity: 1 },
+              },
+              fadeInUp: {
+                '0%': { opacity: 0, transform: 'translateY(20px)' },
+                '100%': { opacity: 1, transform: 'translateY(0)' },
+              },
             }
           }
         }
