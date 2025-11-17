@@ -24,7 +24,7 @@ export interface SubscriptionPlan {
     recommended?: boolean;
 }
 
-export type Screen = 'onboarding' | 'loading' | 'reading' | 'subscription' | 'history' | 'weekly_report';
+export type Screen = 'onboarding' | 'loading' | 'reading' | 'subscription' | 'history' | 'weekly_report' | 'settings';
 
 // This is the standard content structure returned by the AI model
 export interface DailyReading {

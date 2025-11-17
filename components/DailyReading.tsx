@@ -1,17 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { HistoricReading, Plan, SpecialReading, DailyReading } from '../types';
-import { CogIcon } from './icons/CogIcon';
 import { HistoryIcon } from './icons/HistoryIcon';
 import { MoonIcon } from './icons/MoonIcon';
 import { Card } from './Card';
-import { Advertisement } from './Advertisement';
-import { products, Product } from '../data/products';
 
 interface DailyReadingProps {
   reading: HistoricReading;
   currentPlan: Plan;
   onReset: () => void;
-  onManageSubscription: () => void;
   onViewHistory: () => void;
   isViewingHistory?: boolean;
   onBackToHistory?: () => void;
@@ -105,16 +101,9 @@ const SpecialReadingContent: React.FC<{ content: SpecialReading }> = ({ content 
 );
 
 
-export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, currentPlan, onReset, onManageSubscription, onViewHistory, isViewingHistory = false, onBackToHistory, onUpdateJournal }) => {
+export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, currentPlan, onReset, onViewHistory, isViewingHistory = false, onBackToHistory, onUpdateJournal }) => {
   const isPremiumFeatureEnabled = currentPlan === Plan.PLUS || currentPlan === Plan.PREMIUM;
   const { reading: readingContent } = reading;
-  const [adProduct, setAdProduct] = useState<Product | null>(null);
-
-  useEffect(() => {
-    // Select a random product to display when the component mounts
-    const randomProduct = products[Math.floor(Math.random() * products.length)];
-    setAdProduct(randomProduct);
-  }, []); // Empty dependency array ensures this runs only once
     
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6">
@@ -137,12 +126,6 @@ export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, curr
             : <DailyReadingContent content={readingContent} />
         }
         
-        {adProduct && (
-            <Card title="A Tool for Your Path">
-                <Advertisement product={adProduct} />
-            </Card>
-        )}
-
         <JournalCard reading={reading} onUpdateJournal={onUpdateJournal} />
 
         <footer className="text-center italic text-sunbeam-gold/80 dark:text-moonbeam-gold/80 pt-4">
@@ -163,12 +146,6 @@ export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, curr
             >
                 <HistoryIcon className="w-5 h-5 mr-2" />
                 View History
-            </button>
-        </div>
-         <div className="mt-6 text-center">
-            <button onClick={onManageSubscription} className="inline-flex items-center text-xs text-deep-sapphire/60 dark:text-starlight-silver/60 hover:text-sunbeam-gold dark:hover:text-moonbeam-gold transition-colors">
-                <CogIcon className="w-4 h-4 mr-2" />
-                Manage Subscription
             </button>
         </div>
       </div>

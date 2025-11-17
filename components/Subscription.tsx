@@ -56,9 +56,12 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ plans, curre
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6 animate-fade-in">
         <div className="w-full max-w-6xl mx-auto">
             <header className="text-center mb-10">
+                <div className="mb-4 inline-block bg-sunbeam-gold/20 dark:bg-moonbeam-gold/20 border border-sunbeam-gold dark:border-moonbeam-gold text-sunbeam-gold dark:text-moonbeam-gold font-semibold px-4 py-2 rounded-full text-sm">
+                    ✨ Beta Launch: All plans are free for a limited time! ✨
+                </div>
                 <h1 className="text-4xl sm:text-5xl font-serif font-bold text-deep-sapphire dark:text-white">Choose Your Path</h1>
                 <p className="mt-2 text-deep-sapphire/80 dark:text-starlight-silver/80 max-w-2xl mx-auto">
-                    Welcome to the MoonPath Beta! Explore all our features for free during this period and help us shape the final journey.
+                    The moon offers its wisdom freely, but for those who wish to walk a deeper path, enhanced guidance awaits. Explore our premium features for free during our beta period.
                 </p>
             </header>
 
@@ -75,7 +78,7 @@ export const SubscriptionPage: React.FC<SubscriptionPageProps> = ({ plans, curre
 
             <footer className="text-center mt-12 space-y-4">
                 <p className="text-sm text-deep-sapphire/60 dark:text-starlight-silver/60">
-                    As a thank you for being a beta tester, all plans are free. You can change your plan at any time.
+                    No payment required during the beta period. You can change your plan at any time.
                 </p>
                 <button
                     onClick={onClose}

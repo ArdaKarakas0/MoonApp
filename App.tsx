@@ -1,4 +1,3 @@
-
 import React, { useState, useCallback, useEffect } from 'react';
 import { Onboarding } from './components/Onboarding';
 import { Loading } from './components/Loading';
@@ -11,6 +10,9 @@ import { secureGetItem, secureSetItem } from './utils/secureStore';
 import { Toast } from './components/Toast';
 import { ThemeToggle } from './components/ThemeToggle';
 import { WeeklyReportDisplay } from './components/WeeklyReport';
+import { Settings } from './components/Settings';
+import { ConfirmationModal } from './components/ConfirmationModal';
+import { CogIcon } from './components/icons/CogIcon';
 
 const availablePlans: SubscriptionPlan[] = [
     {
@@ -25,8 +27,8 @@ const availablePlans: SubscriptionPlan[] = [
     },
     {
         name: Plan.PLUS,
-        price: "$0",
-        tagline: "Clearer Lunar Insights",
+        price: "$0 / month (Beta)",
+        tagline: "Free access during our beta!",
         recommended: true,
         features: [
             "Everything in Free, plus:",
@@ -37,8 +39,8 @@ const availablePlans: SubscriptionPlan[] = [
     },
     {
         name: Plan.PREMIUM,
-        price: "$0",
-        tagline: "Deeper Lunar Currents",
+        price: "$0 / month (Beta)",
+        tagline: "Free access during our beta!",
         features: [
             "Everything in Plus, plus:",
             "Deepest, most detailed readings",
@@ -75,7 +77,6 @@ const App: React.FC = () => {
   const [previousScreen, setPreviousScreen] = useState<Screen>('onboarding');
   const [currentReading, setCurrentReading] = useState<HistoricReading | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [isInitializing, setIsInitializing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPlan, setCurrentPlan] = useState<Plan>(Plan.FREE);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -83,6 +84,8 @@ const App: React.FC = () => {
   const [isViewingFromHistory, setIsViewingFromHistory] = useState(false);
   const [weeklyReport, setWeeklyReport] = useState<WeeklyReport | null>(null);
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
+  const [isClearHistoryModalOpen, setIsClearHistoryModalOpen] = useState(false);
+
 
   useEffect(() => {
     if (theme === 'dark') {
@@ -111,9 +114,6 @@ const App: React.FC = () => {
     } catch (e) {
         console.error("Failed to load reading history from localStorage", e);
     }
-    
-    // A small timeout prevents a jarring flicker if loading is very fast.
-    setTimeout(() => setIsInitializing(false), 2000);
   }, []);
   
   const toggleTheme = () => {
@@ -256,6 +256,31 @@ const App: React.FC = () => {
     setScreen('history');
   }
 
+  const handleOpenSettings = () => {
+    setPreviousScreen(screen);
+    setScreen('settings');
+  };
+
+  const handleCloseSettings = () => {
+    setScreen(previousScreen);
+  };
+  
+  const handleInitiateClearHistory = () => {
+    setIsClearHistoryModalOpen(true);
+  };
+
+  const handleConfirmClearHistory = () => {
+    setReadingHistory([]);
+    try {
+        localStorage.removeItem(APP_HISTORY_KEY);
+    } catch (e) {
+        console.error("Failed to clear history from localStorage", e);
+        setToastMessage("Could not clear history.");
+    }
+    setIsClearHistoryModalOpen(false);
+    setToastMessage("Reading history cleared.");
+  };
+
   const renderScreen = () => {
     switch (screen) {
       case 'onboarding':
@@ -266,7 +291,6 @@ const App: React.FC = () => {
                 reading={currentReading} 
                 currentPlan={currentPlan}
                 onReset={handleReset} 
-                onManageSubscription={handleManageSubscription}
                 onViewHistory={handleViewHistory}
                 isViewingHistory={isViewingFromHistory}
                 onBackToHistory={handleBackToHistory}
@@ -300,20 +324,47 @@ const App: React.FC = () => {
             onGenerateReport={handleGenerateWeeklyReport}
           />
         );
+      case 'settings':
+        return <Settings
+                  onClose={handleCloseSettings}
+                  onManageSubscription={handleManageSubscription}
+                  onClearHistory={handleInitiateClearHistory}
+                />;
       default:
-        return <Onboarding onStart={handleGetReading} onManageSubscription={handleManageSubscription} />;
+        return <Onboarding onStart={handleGetReading} error={error} onManageSubscription={handleManageSubscription} />;
     }
   };
+
+  const showSettingsButton = !['subscription', 'settings', 'loading'].includes(screen);
 
   return (
     <main className="relative w-full min-h-screen">
       <div className="absolute inset-0 bg-black/10 dark:bg-black/20"></div>
+      {showSettingsButton && (
+        <button
+          onClick={handleOpenSettings}
+          aria-label="Open settings"
+          className="fixed top-4 left-4 z-50 w-12 h-12 bg-white/40 dark:bg-midnight-purple/40 backdrop-blur-md rounded-full flex items-center justify-center border border-cloud-gray/30 dark:border-starlight-silver/10 text-deep-sapphire dark:text-starlight-silver hover:bg-black/5 dark:hover:bg-starlight-silver/10 transition-all duration-300"
+        >
+          <CogIcon className="w-6 h-6" />
+        </button>
+      )}
       <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
       <div className="relative z-10">
-        {!isInitializing && renderScreen()}
+        {renderScreen()}
       </div>
-      {(isLoading || isInitializing) && <Loading />}
+      {isLoading && <Loading />}
       {toastMessage && <Toast message={toastMessage} onClose={() => setToastMessage(null)} />}
+      {isClearHistoryModalOpen && (
+        <ConfirmationModal
+          isOpen={isClearHistoryModalOpen}
+          onClose={() => setIsClearHistoryModalOpen(false)}
+          onConfirm={handleConfirmClearHistory}
+          title="Clear Reading History?"
+          message="This action is permanent and cannot be undone. All your past readings and journal entries will be lost."
+          confirmText="Yes, Clear History"
+        />
+      )}
     </main>
   );
 };
