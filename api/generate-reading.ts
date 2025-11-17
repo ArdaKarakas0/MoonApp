@@ -1,4 +1,3 @@
-
 // FIX: Refactor to use the @google/genai SDK for API calls, following best practices.
 import { GoogleGenAI, Type } from '@google/genai';
 
@@ -40,7 +39,7 @@ interface VercelResponse {
 const allSponsoredProducts = [
     {
         name: 'The Wild Unknown Tarot Deck',
-        description: 'A stunningly illustrated tarot deck to guide your self-exploration and unlock your intuition.',
+        description: 'A stunningly illustrated deck for self-exploration.',
         url: 'https://amzn.to/4rmgVhl',
     },
     {
@@ -50,7 +49,7 @@ const allSponsoredProducts = [
     },
     {
         name: 'Celestial Moon Phase Journal',
-        description: 'A beautiful dotted journal for your thoughts, dreams, and tracking the moon\'s journey.',
+        description: 'A beautiful journal to track your thoughts and dreams.',
         url: 'https://amzn.to/3VdE6fG',
     },
     {
@@ -60,7 +59,7 @@ const allSponsoredProducts = [
     },
     {
         name: 'Stardust Oracle Deck',
-        description: 'Tap into cosmic wisdom with this beautifully illustrated oracle deck, perfect for daily guidance.',
+        description: 'Tap into cosmic wisdom with this beautiful oracle deck.',
         url: 'https://amzn.to/3X1mUdh',
     },
     {
@@ -74,8 +73,8 @@ const allSponsoredProducts = [
         url: 'https://amzn.to/47NiRHK',
     },
     {
-        name: 'Lunar Phase Sterling Silver Necklace',
-        description: 'Wear the magic of the moon with this elegant necklace depicting all her phases.',
+        name: 'Moonology: Magic of Lunar Cycles',
+        description: 'A guide to working with the moon\'s power.',
         url: 'https://amzn.to/3K3TtEy',
     },
     {
