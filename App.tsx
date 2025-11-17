@@ -85,6 +85,7 @@ const App: React.FC = () => {
   const [weeklyReport, setWeeklyReport] = useState<WeeklyReport | null>(null);
   const [theme, setTheme] = useState<Theme>(getInitialTheme);
   const [isClearHistoryModalOpen, setIsClearHistoryModalOpen] = useState(false);
+  const [settingsOrigin, setSettingsOrigin] = useState<Screen>('onboarding');
 
 
   useEffect(() => {
@@ -257,12 +258,12 @@ const App: React.FC = () => {
   }
 
   const handleOpenSettings = () => {
-    setPreviousScreen(screen);
+    setSettingsOrigin(screen);
     setScreen('settings');
   };
 
   const handleCloseSettings = () => {
-    setScreen(previousScreen);
+    setScreen(settingsOrigin);
   };
   
   const handleInitiateClearHistory = () => {
