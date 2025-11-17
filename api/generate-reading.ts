@@ -1,3 +1,4 @@
+
 // FIX: Refactor to use the @google/genai SDK for API calls, following best practices.
 import { GoogleGenAI, Type } from '@google/genai';
 
@@ -36,6 +37,20 @@ interface VercelResponse {
     setHeader: (key: string, value: string) => void;
 }
 
+const sponsoredProductsSchema = {
+    type: Type.ARRAY,
+    description: "A list of 3 thematically appropriate sponsored products.",
+    items: {
+        type: Type.OBJECT,
+        properties: {
+            name: { type: Type.STRING, description: "The name of the product." },
+            description: { type: Type.STRING, description: "A short, poetic description of the product." },
+            url: { type: Type.STRING, description: "A placeholder URL for the product, e.g., '#product-link'." }
+        },
+        required: ['name', 'description', 'url']
+    }
+};
+
 const dailyReadingSchema = {
   type: Type.OBJECT,
   properties: {
@@ -56,8 +71,9 @@ const dailyReadingSchema = {
       }, required: ['name', 'meaning'],
     },
     closingLine: { type: Type.STRING },
+    sponsoredProducts: sponsoredProductsSchema,
   },
-  required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'lunarMessage', 'lunarWarning', 'opportunityWindow', 'lunarSymbol', 'closingLine' ],
+  required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'lunarMessage', 'lunarWarning', 'opportunityWindow', 'lunarSymbol', 'closingLine', 'sponsoredProducts' ],
 };
 
 const specialReadingSchema = {
@@ -85,8 +101,9 @@ const specialReadingSchema = {
             description: "A direct, potent piece of wisdom or a question."
         },
         closingLine: { type: Type.STRING },
+        sponsoredProducts: sponsoredProductsSchema,
     },
-    required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'specialTheme', 'deepDiveMessage', 'ritualSuggestion', 'oracleInsight', 'closingLine' ],
+    required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'specialTheme', 'deepDiveMessage', 'ritualSuggestion', 'oracleInsight', 'closingLine', 'sponsoredProducts' ],
 };
 
 const createPrompt = (userName: string, userMood: string, moonPhase: MoonPhase, currentPlan: Plan, isSpecial: boolean): string => {
@@ -95,11 +112,18 @@ You are MoonPath, a mystical, poetic, and modern spiritual guide. Generate a dai
 Your tone is calm, gentle, and psychologically aware. Avoid clichés, horoscopes, and mentioning you are an AI.
 `;
 
+    const productInstruction = `
+As part of the JSON response, also generate a list of exactly 3 sponsored products that are thematically aligned with the reading's mood and message. These should be mystical, wellness, or self-care items (e.g., crystals, essential oils, guided journals, herbal teas, meditation apps).
+For each product, provide a 'name', a short, poetic 'description', and a placeholder 'url' of '#product-link'. This list must be included in a 'sponsoredProducts' array.
+`;
+
     if (isSpecial) {
         const theme = moonPhase === MoonPhase.FULL_MOON ? 'culmination, release, and gratitude' : 'intention, new beginnings, and potential';
         return `${baseInstruction}
 Generate a special, deep, and ceremonial reading for a premium user under a ${moonPhase}.
 Focus on themes of ${theme}.
+
+${productInstruction}
 
 USER DETAILS:
 - Name: "${userName || 'the seeker'}"
@@ -114,6 +138,8 @@ Adjust the depth of the Lunar Message based on the user's subscription plan:
 - Free: A standard, gentle message (2-3 paragraphs).
 - MoonPath Plus: A deeper message with practical reflection (3 paragraphs).
 - MoonPath Premium: The most profound and nuanced message (3-4 paragraphs).
+
+${productInstruction}
 
 USER DETAILS:
 - Name: "${userName || 'the seeker'}"

@@ -26,6 +26,12 @@ export interface SubscriptionPlan {
 
 export type Screen = 'onboarding' | 'loading' | 'reading' | 'subscription' | 'history' | 'weekly_report' | 'settings';
 
+export interface SponsoredProduct {
+  name: string;
+  description: string;
+  url: string;
+}
+
 // This is the standard content structure returned by the AI model
 export interface DailyReading {
   readingType: 'daily';
@@ -42,6 +48,7 @@ export interface DailyReading {
     meaning: string;
   };
   closingLine: string;
+  sponsoredProducts: SponsoredProduct[];
 }
 
 // This is the special content structure for Premium users on Full/New Moons
@@ -63,6 +70,7 @@ export interface SpecialReading {
       description: string;
   };
   closingLine: string;
+  sponsoredProducts: SponsoredProduct[];
 }
 
 // This is the object we store in our history state and localStorage

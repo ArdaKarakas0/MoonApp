@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { HistoricReading, Plan, SpecialReading, DailyReading } from '../types';
+import { HistoricReading, Plan, SpecialReading, DailyReading, SponsoredProduct } from '../types';
 import { HistoryIcon } from './icons/HistoryIcon';
 import { MoonIcon } from './icons/MoonIcon';
 import { Card } from './Card';
@@ -100,10 +101,38 @@ const SpecialReadingContent: React.FC<{ content: SpecialReading }> = ({ content 
     </>
 );
 
+const SponsoredProductDisplay: React.FC<{ product: SponsoredProduct }> = ({ product }) => (
+    <div className="bg-white/50 dark:bg-celestial-blue/50 p-4 rounded-lg flex flex-col items-center text-center border border-cloud-gray/20 dark:border-starlight-silver/10 h-full">
+        <div className="w-20 h-20 bg-gradient-to-br from-sky-blue to-dawn-pink dark:from-celestial-blue dark:to-midnight-purple rounded-md mb-3 flex items-center justify-center shadow-inner">
+            <MoonIcon className="w-8 h-8 text-sunbeam-gold dark:text-moonbeam-gold opacity-50" />
+        </div>
+        <h4 className="font-semibold font-serif text-deep-sapphire dark:text-white">{product.name}</h4>
+        <p className="text-sm text-deep-sapphire/80 dark:text-starlight-silver/80 mt-1 mb-3 flex-grow">{product.description}</p>
+        <a 
+            href={product.url} 
+            target="_blank" 
+            rel="noopener noreferrer" 
+            className="text-xs font-bold bg-sunbeam-gold/80 dark:bg-moonbeam-gold/80 text-white dark:text-celestial-blue py-2 px-4 rounded-full hover:bg-amber-500 dark:hover:bg-amber-300 transition-colors duration-300 mt-auto"
+        >
+            Learn More
+        </a>
+    </div>
+);
+
+const SponsoredProducts: React.FC<{ products: SponsoredProduct[] }> = ({ products }) => (
+    <Card title="Cosmic Offerings">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {products.map((product, index) => (
+                <SponsoredProductDisplay key={index} product={product} />
+            ))}
+        </div>
+    </Card>
+);
 
 export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, currentPlan, onReset, onViewHistory, isViewingHistory = false, onBackToHistory, onUpdateJournal }) => {
   const isPremiumFeatureEnabled = currentPlan === Plan.PLUS || currentPlan === Plan.PREMIUM;
   const { reading: readingContent } = reading;
+  const sponsoredProducts = readingContent.sponsoredProducts;
     
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-4 sm:p-6">
@@ -125,6 +154,10 @@ export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, curr
             ? <SpecialReadingContent content={readingContent} /> 
             : <DailyReadingContent content={readingContent} />
         }
+
+        {sponsoredProducts && sponsoredProducts.length > 0 && (
+            <SponsoredProducts products={sponsoredProducts} />
+        )}
         
         <JournalCard reading={reading} onUpdateJournal={onUpdateJournal} />
 
