@@ -146,4 +146,43 @@ export const DailyReadingDisplay: React.FC<DailyReadingProps> = ({ reading, curr
           {(isViewingHistory || reading.date) && (
             <p className="text-sunbeam-gold/80 dark:text-moonbeam-gold/80 mb-2 font-serif">{new Date(reading.date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</p>
           )}
-          <h1 className="text-4xl sm:text-5xl font-serif font-bold text
+          <h1 className="text-4xl sm:text-5xl font-serif font-bold text-deep-sapphire dark:text-white">{readingContent.moonPhaseHeading.title}</h1>
+          <p className="text-deep-sapphire/80 dark:text-starlight-silver/80 mt-2">{readingContent.moonPhaseHeading.description}</p>
+          <p className="text-sunbeam-gold dark:text-moonbeam-gold font-semibold mt-4 text-lg animate-subtle-pulse">{readingContent.lunarAlignment}</p>
+        </header>
+
+        {readingContent.readingType === 'special' ? (
+          <SpecialReadingContent content={readingContent as SpecialReading} />
+        ) : (
+          <DailyReadingContent content={readingContent as DailyReading} />
+        )}
+        
+        {isPremiumFeatureEnabled && (
+            <JournalCard reading={reading} onUpdateJournal={onUpdateJournal} />
+        )}
+        
+        {sponsoredProducts && sponsoredProducts.length > 0 && (
+            <SponsoredProducts products={sponsoredProducts} />
+        )}
+
+        <footer className="pt-6 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <button
+                onClick={isViewingHistory ? onBackToHistory : onReset}
+                className="bg-sunbeam-gold dark:bg-moonbeam-gold text-white dark:text-celestial-blue font-bold py-2 px-6 rounded-lg hover:bg-amber-600 dark:hover:bg-amber-300 transition-colors duration-300 shadow-lg shadow-sunbeam-gold/30 dark:shadow-moonbeam-gold/20 w-full sm:w-auto"
+            >
+                {isViewingHistory ? 'Back to History' : 'New Reading'}
+            </button>
+            {!isViewingHistory && (
+                 <button
+                    onClick={onViewHistory}
+                    className="flex items-center justify-center gap-2 bg-black/5 dark:bg-starlight-silver/10 text-deep-sapphire dark:text-starlight-silver border border-cloud-gray/40 dark:border-starlight-silver/20 font-semibold py-2 px-6 rounded-lg hover:bg-black/10 dark:hover:bg-starlight-silver/20 transition-colors duration-300 w-full sm:w-auto"
+                >
+                    <HistoryIcon className="w-5 h-5" />
+                    <span>View History</span>
+                </button>
+            )}
+        </footer>
+      </div>
+    </div>
+  );
+};
