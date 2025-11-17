@@ -102,18 +102,13 @@ const SpecialReadingContent: React.FC<{ content: SpecialReading }> = ({ content 
 );
 
 const SponsoredProductDisplay: React.FC<{ product: SponsoredProduct }> = ({ product }) => {
-    const isBook = product.name.toLowerCase().includes('book') || 
-                   product.name.toLowerCase().includes('deck') || 
-                   product.name.toLowerCase().includes('journal') ||
-                   product.name.toLowerCase().includes('moonology');
     return (
         <div className="bg-white/50 dark:bg-celestial-blue/50 p-4 rounded-lg flex flex-col items-center text-center border border-cloud-gray/20 dark:border-starlight-silver/10 h-full">
-            <div className="w-20 h-20 bg-gradient-to-br from-sky-blue to-dawn-pink dark:from-celestial-blue dark:to-midnight-purple rounded-md mb-3 flex items-center justify-center shadow-inner">
-                {isBook 
-                    ? <BookOpenIcon className="w-8 h-8 text-sunbeam-gold dark:text-moonbeam-gold opacity-50" />
-                    : <MoonIcon className="w-8 h-8 text-sunbeam-gold dark:text-moonbeam-gold opacity-50" />
-                }
-            </div>
+            <img 
+                src={product.imageUrl} 
+                alt={product.name} 
+                className="w-24 h-24 object-cover rounded-md mb-3 bg-gradient-to-br from-sky-blue to-dawn-pink dark:from-celestial-blue dark:to-midnight-purple shadow-inner" 
+            />
             <h4 className="font-semibold font-serif text-deep-sapphire dark:text-white">{product.name}</h4>
             <p className="text-sm text-deep-sapphire/80 dark:text-starlight-silver/80 mt-1 mb-3 flex-grow">{product.description}</p>
             <a 

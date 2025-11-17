@@ -30,6 +30,7 @@ export interface SponsoredProduct {
   name: string;
   description: string;
   url: string;
+  imageUrl: string;
 }
 
 // This is the standard content structure returned by the AI model

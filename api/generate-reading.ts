@@ -39,50 +39,60 @@ interface VercelResponse {
 const allSponsoredProducts = [
     {
         name: 'The Wild Unknown Tarot Deck',
-        description: 'A breathtakingly beautiful tarot deck and guidebook for self-discovery, inspired by the animal kingdom and the mysteries of the natural world.',
+        description: 'A breathtakingly beautiful tarot deck and guidebook for self-discovery, inspired by the animal kingdom.',
         url: 'https://amzn.to/4rmgVhl',
+        imageUrl: 'https://placehold.co/200x200/1a2a6c/d1d5db/png?text=Tarot+Deck',
     },
     {
         name: 'Full Moon Ritual Bath Soak',
-        description: 'Cleanse your energy with this handcrafted blend of Epsom salts, Himalayan pink salt, dried lavender, and essential oils, designed for full moon rituals.',
+        description: 'Cleanse your energy with this handcrafted blend of Epsom salts, dried lavender, and essential oils.',
         url: 'https://amzn.to/3K3SELY',
+        imageUrl: 'https://placehold.co/200x200/2e1a47/fde68a/png?text=Bath+Soak',
     },
     {
         name: 'Celestial Moon Phase Journal',
-        description: 'A beautifully designed hardcover journal with moon phase guides, astrological insights, and ample space for your intentions, reflections, and dreams.',
+        description: 'A hardcover journal with moon phase guides, astrological insights, and space for your intentions.',
         url: 'https://amzn.to/3VdE6fG',
+        imageUrl: 'https://placehold.co/200x200/1a2a6c/d1d5db/png?text=Journal',
     },
     {
         name: 'Cosmic Energy Crystal Set',
-        description: 'A curated starter set of high-vibration crystals including Amethyst, Rose Quartz, and Clear Quartz to amplify intentions and align your spirit.',
+        description: 'A curated starter set of high-vibration crystals including Amethyst, Rose Quartz, and Clear Quartz.',
         url: 'https://amzn.to/47YtOFg',
+        imageUrl: 'https://placehold.co/200x200/2e1a47/fde68a/png?text=Crystals',
     },
     {
         name: 'Stardust Oracle Deck',
-        description: 'A whimsical and intuitive 53-card oracle deck that connects you to the messages of the stars, cosmos, and the mysteries of the universe.',
+        description: 'An intuitive 53-card oracle deck that connects you to the messages of the stars and the universe.',
         url: 'https://amzn.to/3X1mUdh',
+        imageUrl: 'https://placehold.co/200x200/1a2a6c/d1d5db/png?text=Oracle+Deck',
     },
     {
         name: 'Moon Goddess Intention Candle',
-        description: 'A hand-poured soy wax candle infused with lavender, chamomile, and a moonstone crystal to enhance your meditation and manifestation rituals.',
+        description: 'A hand-poured soy wax candle infused with lavender and a moonstone crystal to enhance meditation.',
         url: 'https://amzn.to/4oPCtkA',
+        imageUrl: 'https://placehold.co/200x200/2e1a47/fde68a/png?text=Candle',
     },
     {
         name: 'Sacred Sage Cleansing Wand',
-        description: 'Purify your sacred space, banish negative energy, and invite tranquility with this ethically sourced California White Sage smudge stick.',
+        description: 'Purify your sacred space and banish negative energy with this ethically sourced California White Sage.',
         url: 'https://amzn.to/47NiRHK',
+        imageUrl: 'https://placehold.co/200x200/1a2a6c/d1d5db/png?text=Sage',
     },
     {
-        name: 'Moonology: Working with the Magic of Lunar Cycles',
-        description: 'A bestselling book by Yasmin Boland that serves as an essential guide to understanding the moon\'s phases and using them to create a magical life.',
+        name: 'Moonology Oracle Cards',
+        description: 'A powerful deck by Yasmin Boland to work with the moon\'s power and gain clarity on your life.',
         url: 'https://amzn.to/3K3TtEy',
+        imageUrl: 'https://placehold.co/200x200/2e1a47/fde68a/png?text=Moonology+Deck',
     },
     {
         name: 'Tibetan Singing Bowl Set',
-        description: 'This handcrafted singing bowl creates resonant, healing sounds for meditation, mindfulness, and chakra balancing. Includes cushion and mallet.',
+        description: 'This handcrafted singing bowl creates resonant, healing sounds for meditation and mindfulness.',
         url: 'https://amzn.to/3X0pVdW',
+        imageUrl: 'https://placehold.co/200x200/1a2a6c/d1d5db/png?text=Singing+Bowl',
     },
 ];
+
 
 const sponsoredProductSchema = {
     type: Type.OBJECT,
@@ -90,8 +100,9 @@ const sponsoredProductSchema = {
         name: { type: Type.STRING },
         description: { type: Type.STRING },
         url: { type: Type.STRING },
+        imageUrl: { type: Type.STRING },
     },
-    required: ['name', 'description', 'url'],
+    required: ['name', 'description', 'url', 'imageUrl'],
 };
 
 const dailyReadingSchema = {
