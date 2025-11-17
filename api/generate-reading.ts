@@ -39,50 +39,60 @@ interface VercelResponse {
 const allSponsoredProducts = [
     {
         name: 'The Wild Unknown Tarot Deck',
-        description: 'A stunningly illustrated deck for self-exploration.',
+        description: 'A breathtakingly beautiful tarot deck and guidebook for self-discovery, inspired by the animal kingdom and the mysteries of the natural world.',
         url: 'https://amzn.to/4rmgVhl',
     },
     {
         name: 'Full Moon Ritual Bath Soak',
-        description: 'Handcrafted herbal bath salts to cleanse your energy and align with the lunar cycle.',
+        description: 'Cleanse your energy with this handcrafted blend of Epsom salts, Himalayan pink salt, dried lavender, and essential oils, designed for full moon rituals.',
         url: 'https://amzn.to/3K3SELY',
     },
     {
         name: 'Celestial Moon Phase Journal',
-        description: 'A beautiful journal to track your thoughts and dreams.',
+        description: 'A beautifully designed hardcover journal with moon phase guides, astrological insights, and ample space for your intentions, reflections, and dreams.',
         url: 'https://amzn.to/3VdE6fG',
     },
     {
         name: 'Cosmic Energy Crystal Set',
-        description: 'A curated set of high-vibration crystals to amplify your intentions and align your spirit.',
+        description: 'A curated starter set of high-vibration crystals including Amethyst, Rose Quartz, and Clear Quartz to amplify intentions and align your spirit.',
         url: 'https://amzn.to/47YtOFg',
     },
     {
         name: 'Stardust Oracle Deck',
-        description: 'Tap into cosmic wisdom with this beautiful oracle deck.',
+        description: 'A whimsical and intuitive 53-card oracle deck that connects you to the messages of the stars, cosmos, and the mysteries of the universe.',
         url: 'https://amzn.to/3X1mUdh',
     },
     {
         name: 'Moon Goddess Intention Candle',
-        description: 'A soy wax candle infused with lavender and chamomile to enhance your rituals and meditation.',
+        description: 'A hand-poured soy wax candle infused with lavender, chamomile, and a moonstone crystal to enhance your meditation and manifestation rituals.',
         url: 'https://amzn.to/4oPCtkA',
     },
     {
         name: 'Sacred Sage Cleansing Wand',
-        description: 'Purify your space and spirit with this ethically sourced white sage smudge stick.',
+        description: 'Purify your sacred space, banish negative energy, and invite tranquility with this ethically sourced California White Sage smudge stick.',
         url: 'https://amzn.to/47NiRHK',
     },
     {
-        name: 'Moonology: Magic of Lunar Cycles',
-        description: 'A guide to working with the moon\'s power.',
+        name: 'Moonology: Working with the Magic of Lunar Cycles',
+        description: 'A bestselling book by Yasmin Boland that serves as an essential guide to understanding the moon\'s phases and using them to create a magical life.',
         url: 'https://amzn.to/3K3TtEy',
     },
     {
         name: 'Tibetan Singing Bowl Set',
-        description: 'Create resonant, healing sounds for meditation and chakra balancing with this handcrafted bowl.',
+        description: 'This handcrafted singing bowl creates resonant, healing sounds for meditation, mindfulness, and chakra balancing. Includes cushion and mallet.',
         url: 'https://amzn.to/3X0pVdW',
     },
 ];
+
+const sponsoredProductSchema = {
+    type: Type.OBJECT,
+    properties: {
+        name: { type: Type.STRING },
+        description: { type: Type.STRING },
+        url: { type: Type.STRING },
+    },
+    required: ['name', 'description', 'url'],
+};
 
 const dailyReadingSchema = {
   type: Type.OBJECT,
@@ -104,8 +114,13 @@ const dailyReadingSchema = {
       }, required: ['name', 'meaning'],
     },
     closingLine: { type: Type.STRING },
+    sponsoredProducts: {
+        type: Type.ARRAY,
+        items: sponsoredProductSchema,
+        description: "An array of exactly 3 relevant sponsored products selected from the provided list."
+    },
   },
-  required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'lunarMessage', 'lunarWarning', 'opportunityWindow', 'lunarSymbol', 'closingLine' ],
+  required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'lunarMessage', 'lunarWarning', 'opportunityWindow', 'lunarSymbol', 'closingLine', 'sponsoredProducts' ],
 };
 
 const specialReadingSchema = {
@@ -133,14 +148,26 @@ const specialReadingSchema = {
             description: "A direct, potent piece of wisdom or a question."
         },
         closingLine: { type: Type.STRING },
+        sponsoredProducts: {
+            type: Type.ARRAY,
+            items: sponsoredProductSchema,
+            description: "An array of exactly 3 relevant sponsored products selected from the provided list."
+        },
     },
-    required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'specialTheme', 'deepDiveMessage', 'ritualSuggestion', 'oracleInsight', 'closingLine' ],
+    required: [ 'readingType', 'moonPhaseHeading', 'lunarAlignment', 'specialTheme', 'deepDiveMessage', 'ritualSuggestion', 'oracleInsight', 'closingLine', 'sponsoredProducts' ],
 };
 
 const createPrompt = (userName: string, userMood: string, moonPhase: MoonPhase, currentPlan: Plan, isSpecial: boolean): string => {
     const baseInstruction = `
 You are MoonPath, a mystical, poetic, and modern spiritual guide. Generate a daily lunar guidance based on the user's state.
 Your tone is calm, gentle, and psychologically aware. Avoid clichés, horoscopes, and mentioning you are an AI.
+`;
+
+    const productInstruction = `
+From the list of available products below, select exactly 3 that are most thematically relevant to the reading you generate and include them in the 'sponsoredProducts' field of your response.
+
+AVAILABLE PRODUCTS:
+${JSON.stringify(allSponsoredProducts, null, 2)}
 `;
 
     if (isSpecial) {
@@ -154,6 +181,8 @@ USER DETAILS:
 - Mood: "${userMood}"
 - Moon Phase: "${moonPhase}"
 - Plan: "${currentPlan}"
+
+${productInstruction}
 `;
     }
 
@@ -168,6 +197,8 @@ USER DETAILS:
 - Mood: "${userMood}"
 - Moon Phase: "${moonPhase}"
 - Plan: "${currentPlan}"
+
+${productInstruction}
 `;
 };
 
@@ -210,10 +241,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         const parsedJson = JSON.parse(jsonText);
         
-        // Add 3 random sponsored products to the response
-        const shuffledProducts = [...allSponsoredProducts].sort(() => 0.5 - Math.random());
-        parsedJson.sponsoredProducts = shuffledProducts.slice(0, 3);
-
         res.status(200).json(parsedJson);
 
     } catch (error) {
